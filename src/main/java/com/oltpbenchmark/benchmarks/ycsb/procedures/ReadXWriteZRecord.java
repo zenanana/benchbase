@@ -44,9 +44,6 @@ public class ReadXWriteZRecord extends Procedure {
      * get random integer in range [min, max]
      */
     public int randInt(int min, int max) {
-        // Random rand;
-        // int randomNum = rand.nextInt((max - min) + 1) + min;
-        // return randomNum;
         return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
 
@@ -63,12 +60,12 @@ public class ReadXWriteZRecord extends Procedure {
         "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=?"
     );
 
-    public final SQLStmt startStmt = new SQLStmt(
-        YCSBConstants.START_TRX
+    public final SQLStmt startTrxForStmt = new SQLStmt(
+        YCSBConstants.START_TRX_FOR_STMT
     );
 
     public final SQLStmt commitStmt = new SQLStmt(
-        YCSBConstants.COMMIT_TRX
+        YCSBConstants.COMMIT_TRX_STMT
     );
 
     //FIXME: The value in ysqb is a byteiterator
@@ -77,11 +74,13 @@ public class ReadXWriteZRecord extends Procedure {
      * Z: single hotkey from group 2
      * Y_start, Y_end: range of filler keys to use for filler stmts
      */
-    public void run(Connection conn, int X, int Z, int Z_start, int Z_end, String[] fields, String[] results) throws SQLException {
+    public void run(Connection conn, int trx_typ, Integer[] trx_args, int X, int Z, int Z_start, int Z_end, String[] fields, String[] results) throws SQLException {
         // TODO: get Z_start and Z_end within function rather than passing as arguments
 
-        // Start trx stmt
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, startStmt)) {
+        // Start trx for stmt
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
+            stmt.setInt(1, trx_typ);
+            stmt.setArray(2, conn.createArrayOf("INTEGER", trx_args));
             stmt.execute();
         }
 
