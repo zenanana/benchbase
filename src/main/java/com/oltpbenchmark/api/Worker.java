@@ -413,8 +413,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                         LOG.debug(String.format("%s %s attempting...", this, transactionType));
                     }
 
+                    // TODO: Send start trx here?
                     status = this.executeWork(conn, transactionType);
-
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(String.format("%s %s completed with status [%s]...", this, transactionType, status.name()));
                     }
