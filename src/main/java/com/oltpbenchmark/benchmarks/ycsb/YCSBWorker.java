@@ -167,7 +167,7 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
 
         // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
 
-        Integer[] placeholder = {10,20,30,40,50,60,71,80,90,91};
+        Integer[] placeholder = {key_X, key_Z};
         this.buildParameters();
         this.procReadXWriteZRecord.run(conn, 1, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
@@ -180,9 +180,9 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
 
         // System.out.println("ReadZWriteX: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
 
-        Integer[] placeholder = {10,20,30,40,50,60,71,80,90,91};
+        Integer[] placeholder = {key_Z, key_X};
         this.buildParameters();
-        this.procReadZWriteXRecord.run(conn, 1, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+        this.procReadZWriteXRecord.run(conn, 2, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
     /* END CUSTOM PROCEDURES */
 

@@ -48,7 +48,7 @@ public class ReadZWriteXRecord extends Procedure {
     }
 
     public final SQLStmt selectXStmt = new SQLStmt(
-        "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=? FOR UPDATE"
+        "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=?" // FOR UPDATE
     );
 
     public final SQLStmt updateZStmt = new SQLStmt(
