@@ -80,7 +80,8 @@ public class ReadZWriteXRecord extends Procedure {
         // Start trx for stmt
         try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
             stmt.setInt(1, trx_typ);
-            stmt.setArray(2, conn.createArrayOf("INTEGER", trx_args));
+            stmt.setInt(2, trx_args[0]);
+            stmt.setInt(3, trx_args[1]);
             stmt.execute();
         }
 
