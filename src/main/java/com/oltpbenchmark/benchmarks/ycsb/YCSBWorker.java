@@ -167,9 +167,19 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
 
         // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
 
-        Integer[] placeholder = {key_X, key_Z};
+        Integer[] placeholder = {0, 0};
+        if (key_X == 0) {
+            placeholder[0] = 0;
+        } else {
+            placeholder[0] = 2;
+        }
+        if (key_Z == 999) {
+            placeholder[1] = 7;
+        } else {
+            placeholder[1] = 5;
+        }
         this.buildParameters();
-        this.procReadXWriteZRecord.run(conn, 1, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+        this.procReadXWriteZRecord.run(conn, 0 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
 
     private void readZWriteXRecord(Connection conn) throws SQLException {
@@ -180,9 +190,19 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
 
         // System.out.println("ReadZWriteX: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
 
-        Integer[] placeholder = {key_Z, key_X};
+        Integer[] placeholder = {0, 0};
+        if (key_X == 0) {
+            placeholder[0] = 1;
+        } else {
+            placeholder[0] = 3;
+        }
+        if (key_Z == 999) {
+            placeholder[1] = 6;
+        } else {
+            placeholder[1] = 4;
+        }
         this.buildParameters();
-        this.procReadZWriteXRecord.run(conn, 2, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+        this.procReadZWriteXRecord.run(conn, 1 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
     /* END CUSTOM PROCEDURES */
 
