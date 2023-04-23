@@ -80,6 +80,7 @@ public class YCSBBenchmark extends BenchmarkModule {
         } catch (SQLException e) {
             LOG.error(e.getMessage(), e);
         }
+
         return workers;
     }
 

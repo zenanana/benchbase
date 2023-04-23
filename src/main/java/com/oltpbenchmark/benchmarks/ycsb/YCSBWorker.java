@@ -38,7 +38,8 @@ import java.util.Random;
  *
  * @author pavlo
  */
-class YCSBWorker extends Worker<YCSBBenchmark> {
+public class YCSBWorker extends Worker<YCSBBenchmark> {
+    private YCSBScheduler scheduler;
 
     private final ZipfianGenerator readRecord;
     private static CounterGenerator insertRecord;
@@ -108,14 +109,24 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
         }
 
         /* START CUSTOM PROCEDURES */
-        if (procClass.equals(ReadZWriteXRecord.class)) {
+        if (scheduler.global_counter == 0) {
             readZWriteXRecord(conn);
-        } else if (procClass.equals(ReadXWriteZRecord.class)) {
+        } else {
             readXWriteZRecord(conn);
         }
+
+        // if (procClass.equals(ReadZWriteXRecord.class)) {
+        //     readZWriteXRecord(conn);
+        // } else if (procClass.equals(ReadXWriteZRecord.class)) {
+        //     readXWriteZRecord(conn);
+        // }
         /* END CUSTOM PROCEDURES */
 
         return (TransactionStatus.SUCCESS);
+    }
+
+    public void set_scheduler(YCSBScheduler scheduler) {
+        this.scheduler = scheduler;
     }
 
     private void updateRecord(Connection conn) throws SQLException {
