@@ -115,17 +115,23 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         //     readXWriteZRecord(conn);
         // }
 
+        // if (procClass.equals(ReadZWriteXRecord.class)) {
+        //     int count = scheduler.global_counter;
+        //     while(count != 0) {
+        //         count = scheduler.global_counter;
+        //     }
+        //     readZWriteXRecord(conn);
+        // } else if (procClass.equals(ReadXWriteZRecord.class)) {
+        //     int count = scheduler.global_counter;
+        //     while(count != 1) {
+        //         count = scheduler.global_counter;
+        //     }
+        //     readXWriteZRecord(conn);
+        // }
+
         if (procClass.equals(ReadZWriteXRecord.class)) {
-            int count = scheduler.global_counter;
-            while(count != 0) {
-                count = scheduler.global_counter;
-            }
             readZWriteXRecord(conn);
         } else if (procClass.equals(ReadXWriteZRecord.class)) {
-            int count = scheduler.global_counter;
-            while(count != 1) {
-                count = scheduler.global_counter;
-            }
             readXWriteZRecord(conn);
         }
         /* END CUSTOM PROCEDURES */
