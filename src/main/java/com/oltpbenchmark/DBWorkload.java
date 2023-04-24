@@ -229,6 +229,8 @@ public class DBWorkload {
             wrkld.setTransTypes(tt);
             LOG.debug("Using the following transaction types: {}", tt);
 
+            wrkld.setSchedBatchTime(xmlConfig.getInt("schedBatchTime", 0));
+
             // Read in the groupings of transactions (if any) defined for this
             // benchmark
             int numGroupings = xmlConfig.configurationsAt("transactiontypes" + pluginTest + "/groupings/grouping").size();

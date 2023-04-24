@@ -49,6 +49,7 @@ public class WorkloadConfiguration {
     private int isolationMode = Connection.TRANSACTION_SERIALIZABLE;
     private String dataDir = null;
     private String ddlPath = null;
+    private int schedBatchTime = 100;
 
     /**
      * If true, establish a new connection for each transaction, otherwise use one persistent connection per client
@@ -275,6 +276,14 @@ public class WorkloadConfiguration {
         this.transTypes = transTypes;
     }
 
+    public int getSchedBatchTime() {
+        return schedBatchTime;
+    }
+
+    public void setSchedBatchTime(int schedBatchTime) {
+        this.schedBatchTime = schedBatchTime;
+    }
+
     public List<Phase> getPhases() {
         return phases;
     }
@@ -340,6 +349,7 @@ public class WorkloadConfiguration {
                ", loaderThreads=" + loaderThreads +
                ", workloadState=" + workloadState +
                ", transTypes=" + transTypes +
+               " schedBatchTime=" + schedBatchTime +
                ", isolationMode=" + isolationMode +
                ", dataDir='" + dataDir + '\'' +
                '}';

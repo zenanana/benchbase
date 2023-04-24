@@ -118,12 +118,18 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         if (procClass.equals(ReadZWriteXRecord.class)) {
             int count = scheduler.global_counter;
             while(count != 0) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {}
                 count = scheduler.global_counter;
             }
             readZWriteXRecord(conn);
         } else if (procClass.equals(ReadXWriteZRecord.class)) {
             int count = scheduler.global_counter;
             while(count != 1) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {}
                 count = scheduler.global_counter;
             }
             readXWriteZRecord(conn);

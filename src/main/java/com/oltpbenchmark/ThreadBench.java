@@ -23,6 +23,8 @@ import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.StringUtil;
+import com.oltpbenchmark.benchmarks.tpcc.TPCCScheduler;
+import com.oltpbenchmark.benchmarks.tpcc.TPCCWorker;
 import com.oltpbenchmark.benchmarks.ycsb.YCSBScheduler;
 import com.oltpbenchmark.benchmarks.ycsb.YCSBWorker;
 import org.apache.commons.collections4.map.ListOrderedMap;
@@ -61,15 +63,18 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
 
     private void createWorkerThreads() {
 
-        YCSBScheduler scheduler = new YCSBScheduler();
+        // YCSBScheduler scheduler = new YCSBScheduler();
+        TPCCScheduler scheduler = new TPCCScheduler();
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(scheduler, 0, 100, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(scheduler, 0, this.workConfs.get(0).getSchedBatchTime(), TimeUnit.MILLISECONDS);
 
         for (Worker<?> worker : workers) {
             worker.initializeState();
             // TODO(accheng): hardcoding YCSBWorker for now
-            YCSBWorker yworker = (YCSBWorker) worker;
-            yworker.set_scheduler(scheduler);
+            // YCSBWorker yworker = (YCSBWorker) worker;
+            // yworker.set_scheduler(scheduler);
+            TPCCWorker tworker = (TPCCWorker) worker;
+            tworker.set_scheduler(scheduler);
 
             Thread thread = new Thread(worker);
             thread.setUncaughtExceptionHandler(this);

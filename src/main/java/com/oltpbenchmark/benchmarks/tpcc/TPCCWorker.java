@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.util.Random;
 
 public class TPCCWorker extends Worker<TPCCBenchmark> {
+    private TPCCScheduler scheduler;
 
     private static final Logger LOG = LoggerFactory.getLogger(TPCCWorker.class);
 
@@ -57,6 +58,10 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
         this.numWarehouses = numWarehouses;
     }
 
+    public void set_scheduler(TPCCScheduler scheduler) {
+        this.scheduler = scheduler;
+    }
+
     /**
      * Executes a single TPCC transaction of type transactionType.
      */
@@ -64,6 +69,23 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
     protected TransactionStatus executeWork(Connection conn, TransactionType nextTransaction) throws UserAbortException, SQLException {
         try {
             TPCCProcedure proc = (TPCCProcedure) this.getProcedure(nextTransaction.getProcedureClass());
+            if (proc.toString() == "NewOrder") {
+                int count = scheduler.global_counter;
+                while(count != 0) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {}
+                    count = scheduler.global_counter;
+                }
+            } else if (proc.toString() == "Payment") {
+                int count = scheduler.global_counter;
+                while(count != 1) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {}
+                    count = scheduler.global_counter;
+                }
+            }
             proc.run(conn, gen, terminalWarehouseID, numWarehouses,
                     terminalDistrictLowerID, terminalDistrictUpperID, this);
         } catch (ClassCastException ex) {
