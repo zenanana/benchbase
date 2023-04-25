@@ -119,7 +119,7 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
             int count = scheduler.global_counter;
             while(count != 0) {
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {}
                 count = scheduler.global_counter;
             }
@@ -128,7 +128,7 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
             int count = scheduler.global_counter;
             while(count != 1) {
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {}
                 count = scheduler.global_counter;
             }
