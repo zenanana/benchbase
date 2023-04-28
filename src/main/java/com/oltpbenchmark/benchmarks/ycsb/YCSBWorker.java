@@ -32,6 +32,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import java.util.Arrays;
+
 /**
  * YCSBWorker Implementation
  * I forget who really wrote this but I fixed it up in 2016...
@@ -59,6 +61,8 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
     /* START CUSTOM PROCEDURES */
     private final ReadXWriteZRecord procReadXWriteZRecord;
     private final ReadZWriteXRecord procReadZWriteXRecord;
+    private final TaobenchReadXWriteZRecord procTaobenchReadXWriteZRecord;
+    private final TaobenchReadZWriteXRecord procTaobenchReadZWriteXRecord;
     /* END CUSTOM PROCEDURES */
 
     public YCSBWorker(YCSBBenchmark benchmarkModule, int id, int init_record_count) {
@@ -87,6 +91,8 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         /* START CUSTOM PROCEDURES */
         this.procReadXWriteZRecord = this.getProcedure(ReadXWriteZRecord.class);
         this.procReadZWriteXRecord = this.getProcedure(ReadZWriteXRecord.class);
+        this.procTaobenchReadXWriteZRecord = this.getProcedure(TaobenchReadXWriteZRecord.class);
+        this.procTaobenchReadZWriteXRecord = this.getProcedure(TaobenchReadZWriteXRecord.class);
         /* END CUSTOM PROCEDURES */
     }
 
@@ -119,6 +125,10 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
              readZWriteXRecord(conn);
         } else if (procClass.equals(ReadXWriteZRecord.class)) {
             readXWriteZRecord(conn);
+        } else if (procClass.equals(TaobenchReadXWriteZRecord.class)) {
+            taobenchReadXWriteZRecord(conn);
+        } else if (procClass.equals(TaobenchReadZWriteXRecord.class)) {
+            taobenchReadZWriteXRecord(conn);
         }
 
         // if (procClass.equals(ReadZWriteXRecord.class)) {
@@ -234,6 +244,34 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         }
         this.buildParameters();
         this.procReadZWriteXRecord.run(conn, 1 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+    }
+
+    private void taobenchReadXWriteZRecord(Connection conn) throws SQLException {
+        // Build read_keys and write_keys lists
+        int[] read_keys_placeholder = {1,2,3,4,5,6,7,8,9,10};
+        int[] write_keys_placeholder = Arrays.copyOfRange(read_keys_placeholder, 0, 5);
+
+        // Build START FOR args
+        int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE); // TODO: change to taobench context
+        int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE); // TODO: change to taobench context
+        Integer[] placeholder = {0, 0};
+        if (key_X == 0) {
+            placeholder[0] = 1;
+        } else {
+            placeholder[0] = 3;
+        }
+        if (key_Z == 999) {
+            placeholder[1] = 6;
+        } else {
+            placeholder[1] = 4;
+        }
+
+        this.buildParameters();
+        this.procTaobenchReadXWriteZRecord.run(conn, 1, placeholder, read_keys_placeholder, write_keys_placeholder, this.params, this.results);
+    }
+
+    private void taobenchReadZWriteXRecord(Connection conn) throws SQLException {
+        return;
     }
     /* END CUSTOM PROCEDURES */
 

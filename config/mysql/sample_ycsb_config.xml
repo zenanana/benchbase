@@ -19,7 +19,18 @@
         <work>
             <time>60</time>
             <rate>10000</rate>
-            <weights>0,0,0,0,0,0,10,10</weights>
+            <weights>
+            0, <!-- Update -->
+            0, <!-- Scan -->
+            0, <!-- Read -->
+            0, <!-- ReadModifyWrite -->
+            0, <!-- Insert -->
+            0, <!-- Delete -->
+            0, <!-- ReadXWriteZ -->
+            0, <!-- ReadZWriteX -->
+            10, <!-- TaobenchReadXWriteZ -->
+            10 <!-- TaobenchReadZWriteX -->
+            </weights>
         </work>
     </works>
 
@@ -50,6 +61,12 @@
         </transactiontype>
         <transactiontype>
             <name>ReadZWriteXRecord</name>
+        </transactiontype>
+        <transactiontype>
+            <name>TaobenchReadXWriteZRecord</name>
+        </transactiontype>
+        <transactiontype>
+            <name>TaobenchReadZWriteXRecord</name>
         </transactiontype>
         <!-- END CUSTOM PROCEDURES -->
     </transactiontypes>
