@@ -97,14 +97,14 @@ public class ReadZWriteXRecord extends Procedure {
             }
         }
 
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
-            stmt.setInt(11, Z);
+        // try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
+        //     stmt.setInt(11, Z);
 
-            for (int i = 0; i < fields.length; i++) {
-                stmt.setString(i + 1, fields[i]);
-            }
-            stmt.executeUpdate();
-        }
+        //     for (int i = 0; i < fields.length; i++) {
+        //         stmt.setString(i + 1, fields[i]);
+        //     }
+        //     stmt.executeUpdate();
+        // }
 
         // Bunch of filler stmts
         for (int i = 0; i < YCSBConstants.FILLER_STMT_SIZE; i++) {
@@ -120,16 +120,16 @@ public class ReadZWriteXRecord extends Procedure {
             }
         }
 
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, selectXStmt)) {
-            stmt.setInt(1, X);
-            try (ResultSet r = stmt.executeQuery()) {
-                while (r.next()) {
-                    for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
-                        results[i] = r.getString(i + 1);
-                    }
-                }
-            }
-        }
+        // try (PreparedStatement stmt = this.getPreparedStatement(conn, selectXStmt)) {
+        //     stmt.setInt(1, X);
+        //     try (ResultSet r = stmt.executeQuery()) {
+        //         while (r.next()) {
+        //             for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
+        //                 results[i] = r.getString(i + 1);
+        //             }
+        //         }
+        //     }
+        // }
 
         // Update that mofo
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
