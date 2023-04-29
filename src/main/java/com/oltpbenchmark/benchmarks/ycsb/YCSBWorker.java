@@ -199,12 +199,12 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
 
         Integer[] placeholder = {0, 0};
-        if (key_X == 0) {
+        if (key_X == 0) { //< 5) { //
             placeholder[0] = 0;
         } else {
             placeholder[0] = 2;
         }
-        if (key_Z == 999) {
+        if (key_Z == 999) { //> 995) { //
             placeholder[1] = 7;
         } else {
             placeholder[1] = 5;
@@ -222,12 +222,12 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         // System.out.println("ReadZWriteX: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
 
         Integer[] placeholder = {0, 0};
-        if (key_X == 0) {
+        if (key_X == 0) { //< 5) { //
             placeholder[0] = 1;
         } else {
             placeholder[0] = 3;
         }
-        if (key_Z == 999) {
+        if (key_Z == 999) { //> 995) { //
             placeholder[1] = 6;
         } else {
             placeholder[1] = 4;
