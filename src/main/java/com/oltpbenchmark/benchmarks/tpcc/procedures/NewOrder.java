@@ -92,6 +92,12 @@ public class NewOrder extends TPCCProcedure {
             " (OL_O_ID, OL_D_ID, OL_W_ID, OL_NUMBER, OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT, OL_DIST_INFO) " +
             " VALUES (?,?,?,?,?,?,?,?,?)");
 
+    /* START CUSTOM SQL */
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        TPCCConstants.START_TRX_FOR_STMT
+    );
+    /* END CUSTOM SQL */
+
 
     public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
 
@@ -132,6 +138,9 @@ public class NewOrder extends TPCCProcedure {
                                      int o_ol_cnt, int o_all_local, int[] itemIDs,
                                      int[] supplierWarehouseIDs, int[] orderQuantities, Connection conn) throws SQLException {
 
+        /* START CUSTOM SQL */
+        startFor(conn, w_id, d_id);
+        /* END CUSTOM SQL */
 
         getCustomer(conn, w_id, d_id, c_id);
 
@@ -341,4 +350,14 @@ public class NewOrder extends TPCCProcedure {
         }
     }
 
+    /* START CUSTOM SQL */
+    private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+            stmt.setInt(1, 0); // NewOrder trx type = 0
+            stmt.setInt(2, w_id);
+            stmt.setInt(3, d_id);
+            stmt.execute();
+        }
+    }
+    /* END CUSTOM SQL */
 }

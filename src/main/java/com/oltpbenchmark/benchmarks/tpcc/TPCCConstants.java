@@ -27,4 +27,8 @@ public abstract class TPCCConstants {
     public static final String TABLENAME_OPENORDER = "oorder";
     public static final String TABLENAME_ORDERLINE = "order_line";
     public static final String TABLENAME_NEWORDER = "new_order";
+
+    /* START CUSTOM CONSTANTS */
+    public static final String START_TRX_FOR_STMT = "START TRANSACTION ? FOR (?, ?)";
+    /* END CUSTOM CONSTANTS */
 }
