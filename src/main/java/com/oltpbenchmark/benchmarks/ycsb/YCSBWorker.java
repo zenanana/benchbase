@@ -24,6 +24,7 @@ import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.ycsb.procedures.*;
 import com.oltpbenchmark.distributions.CounterGenerator;
 import com.oltpbenchmark.distributions.ZipfianGenerator;
+import com.oltpbenchmark.distributions.DiscreteGenerator;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.TextGenerator;
 
@@ -250,6 +251,10 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         // Build read_keys and write_keys lists
         int[] read_keys_placeholder = {1,2,3,4,5,6,7,8,9,10};
         int[] write_keys_placeholder = Arrays.copyOfRange(read_keys_placeholder, 0, 5);
+
+        // Prepare various distributions of read and write keys
+        DiscreteGenerator read_key_generator = new DiscreteGenerator(read_keys_placeholder); // Placeholder
+        ZipfianGenerator write_key_generator = new ZipfianGenerator(rng(), write_keys_placeholder.length, 0.99); // Placeholder
 
         // Build START FOR args
         int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE); // TODO: change to taobench context

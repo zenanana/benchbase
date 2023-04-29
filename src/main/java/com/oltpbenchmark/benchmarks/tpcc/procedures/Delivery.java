@@ -81,8 +81,18 @@ public class Delivery extends TPCCProcedure {
             "   AND C_D_ID = ? " +
             "   AND C_ID = ? ");
 
+    /* START CUSTOM SQL */
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        TPCCConstants.START_TRX_FOR_STMT
+    );
+    /* END CUSTOM SQL */
+
 
     public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+
+        /* START CUSTOM SQL */
+        startFor(conn, 0, 0); // Placeholders for args
+        /* END CUSTOM SQL */
 
         int o_carrier_id = TPCCUtil.randomNumber(1, 10, gen);
 
@@ -266,5 +276,16 @@ public class Delivery extends TPCCProcedure {
             }
         }
     }
+
+    /* START CUSTOM SQL */
+    private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+            stmt.setInt(1, 2); // Delivery trx type = 2
+            stmt.setInt(2, w_id);
+            stmt.setInt(3, d_id);
+            stmt.execute();
+        }
+    }
+    /* END CUSTOM SQL */
 
 }

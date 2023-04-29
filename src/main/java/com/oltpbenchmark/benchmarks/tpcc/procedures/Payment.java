@@ -109,11 +109,21 @@ public class Payment extends TPCCProcedure {
             "   AND C_LAST = ? " +
             " ORDER BY C_FIRST");
 
+    /* START CUSTOM SQL */
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        TPCCConstants.START_TRX_FOR_STMT
+    );
+    /* END CUSTOM SQL */
+
     public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker worker) throws SQLException {
 
         int districtID = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
 
         float paymentAmount = (float) (TPCCUtil.randomNumber(100, 500000, gen) / 100.0);
+
+        /* START CUSTOM SQL */
+        startFor(conn, w_id, districtID);
+        /* END CUSTOM SQL */
 
         updateWarehouse(conn, w_id, paymentAmount);
 
@@ -486,5 +496,14 @@ public class Payment extends TPCCProcedure {
         return customers.get(index);
     }
 
-
+    /* START CUSTOM SQL */
+    private void startFor(Connection conn, int w_id, int districtID) throws SQLException {
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+            stmt.setInt(1, 1); // Payment trx type = 1
+            stmt.setInt(2, w_id);
+            stmt.setInt(3, districtID);
+            stmt.execute();
+        }
+    }
+    /* END CUSTOM SQL */
 }
