@@ -39,7 +39,7 @@ X: first set of hotkeys
 Y: large filler set of keys
 Z: second set of hotkeys
 */
-public class ReadZWriteXRecord extends Procedure {
+public class ReadWriteXReadWriteZRecord extends Procedure {
     /**
      * get random integer in range [min, max]
      */
@@ -48,7 +48,7 @@ public class ReadZWriteXRecord extends Procedure {
     }
 
     public final SQLStmt selectXStmt = new SQLStmt(
-        "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=?" // FOR UPDATE
+        "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=? FOR UPDATE"
     );
 
     public final SQLStmt updateZStmt = new SQLStmt(
@@ -76,7 +76,7 @@ public class ReadZWriteXRecord extends Procedure {
      */
     public void run(Connection conn, int trx_typ, Integer[] trx_args, int X, int Z, int Z_start, int Z_end, String[] fields, String[] results) throws SQLException {
         // TODO: get Z_start and Z_end within function rather than passing as arguments
-        // System.out.printf("Trying to start cluster 2 with %d and %d%n", X, Z);
+        // System.out.printf("Trying to start cluster 1 with %d and %d%n", X, Z);
 
         // Start trx for stmt
         try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
@@ -85,11 +85,11 @@ public class ReadZWriteXRecord extends Procedure {
             stmt.setInt(3, trx_args[1]);
             stmt.execute();
         }
-        // System.out.println("Start cluster 2 done");
+        // System.out.println("Start cluster 1 done");
 
         // Fetch it!
         try (PreparedStatement stmt = this.getPreparedStatement(conn, selectXStmt)) {
-            stmt.setInt(1, Z);
+            stmt.setInt(1, X);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
                     for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
@@ -98,7 +98,17 @@ public class ReadZWriteXRecord extends Procedure {
                 }
             }
         }
-        // System.out.printf("Read cluster 2 to %d done%n", Z);
+        // System.out.printf("Read cluster 1 to %d done%n", X);
+
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
+            stmt.setInt(11, X);
+
+            for (int i = 0; i < fields.length; i++) {
+                stmt.setString(i + 1, fields[i]);
+            }
+            stmt.executeUpdate();
+        }
+        // System.out.printf("Write cluster 1 to %d done%n", X);
 
         // Bunch of filler stmts
         for (int i = 0; i < YCSBConstants.FILLER_STMT_SIZE; i++) {
@@ -114,18 +124,30 @@ public class ReadZWriteXRecord extends Procedure {
             }
         }
 
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, selectXStmt)) {
+            stmt.setInt(1, Z);
+            try (ResultSet r = stmt.executeQuery()) {
+                while (r.next()) {
+                    for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
+                        results[i] = r.getString(i + 1);
+                    }
+                }
+            }
+        }
+        // System.out.printf("Read2 cluster 1 to %d done%n", Z);
+
         // Update that mofo
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
-            stmt.setInt(11, X);
+            stmt.setInt(11, Z);
 
             for (int i = 0; i < fields.length; i++) {
                 stmt.setString(i + 1, fields[i]);
             }
             stmt.executeUpdate();
         }
-        // System.out.printf("Write2 cluster 2 to %d done%n", Z);
+        // System.out.printf("Write2 cluster 1 to %d done%n", X);
 
-        // // Commit stmt
+        // // Commit trx
         // try (PreparedStatement stmt = this.getPreparedStatement(conn, commitStmt)) {
         //     stmt.execute();
         // }

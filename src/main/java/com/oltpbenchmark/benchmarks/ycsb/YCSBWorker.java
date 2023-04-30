@@ -61,6 +61,9 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
     private final ReadZWriteXRecord procReadZWriteXRecord;
     /* END CUSTOM PROCEDURES */
 
+    private final ReadWriteXReadWriteZRecord procReadWriteXReadWriteZRecord;
+    private final ReadWriteZReadWriteXRecord procReadWriteZReadWriteXRecord;
+
     public YCSBWorker(YCSBBenchmark benchmarkModule, int id, int init_record_count) {
         super(benchmarkModule, id);
         this.data = new char[benchmarkModule.fieldSize];
@@ -88,6 +91,9 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         this.procReadXWriteZRecord = this.getProcedure(ReadXWriteZRecord.class);
         this.procReadZWriteXRecord = this.getProcedure(ReadZWriteXRecord.class);
         /* END CUSTOM PROCEDURES */
+
+        this.procReadWriteXReadWriteZRecord = this.getProcedure(ReadWriteXReadWriteZRecord.class);
+        this.procReadWriteZReadWriteXRecord = this.getProcedure(ReadWriteZReadWriteXRecord.class);
     }
 
     @Override
@@ -119,6 +125,12 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
              readZWriteXRecord(conn);
         } else if (procClass.equals(ReadXWriteZRecord.class)) {
             readXWriteZRecord(conn);
+        }
+
+        if (procClass.equals(ReadWriteXReadWriteZRecord.class)) {
+             readWriteXReadWriteZRecord(conn);
+        } else if (procClass.equals(ReadWriteZReadWriteXRecord.class)) {
+            readWriteZReadWriteXRecord(conn);
         }
 
         // if (procClass.equals(ReadZWriteXRecord.class)) {
@@ -237,6 +249,51 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
     }
     /* END CUSTOM PROCEDURES */
 
+    private void readWriteXReadWriteZRecord(Connection conn) throws SQLException {
+        int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_start = readRecord.fillerKeyStart(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_end = readRecord.fillerKeyEnd(YCSBConstants.HOTKEY_SET_SIZE);
+
+        // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
+
+        Integer[] placeholder = {0, 0};
+        if (key_X == 0) { //< 5) { //
+            placeholder[0] = 0;
+        } else {
+            placeholder[0] = 2;
+        }
+        if (key_Z == 999) { //> 995) { //
+            placeholder[1] = 7;
+        } else {
+            placeholder[1] = 5;
+        }
+        this.buildParameters();
+        this.procReadWriteXReadWriteZRecord.run(conn, 0 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+    }
+
+    private void readWriteZReadWriteXRecord(Connection conn) throws SQLException {
+        int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_start = readRecord.fillerKeyStart(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_end = readRecord.fillerKeyEnd(YCSBConstants.HOTKEY_SET_SIZE);
+
+        // System.out.println("ReadZWriteX: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
+
+        Integer[] placeholder = {0, 0};
+        if (key_X == 0) { //< 5) { //
+            placeholder[0] = 1;
+        } else {
+            placeholder[0] = 3;
+        }
+        if (key_Z == 999) { //> 995) { //
+            placeholder[1] = 6;
+        } else {
+            placeholder[1] = 4;
+        }
+        this.buildParameters();
+        this.procReadWriteZReadWriteXRecord.run(conn, 1 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+    }
 
     private void buildParameters() {
         for (int i = 0; i < this.params.length; i++) {

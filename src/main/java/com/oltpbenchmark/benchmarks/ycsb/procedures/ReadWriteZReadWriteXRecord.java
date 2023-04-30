@@ -39,7 +39,7 @@ X: first set of hotkeys
 Y: large filler set of keys
 Z: second set of hotkeys
 */
-public class ReadZWriteXRecord extends Procedure {
+public class ReadWriteZReadWriteXRecord extends Procedure {
     /**
      * get random integer in range [min, max]
      */
@@ -48,7 +48,7 @@ public class ReadZWriteXRecord extends Procedure {
     }
 
     public final SQLStmt selectXStmt = new SQLStmt(
-        "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=?" // FOR UPDATE
+        "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=? FOR UPDATE"
     );
 
     public final SQLStmt updateZStmt = new SQLStmt(
@@ -100,6 +100,16 @@ public class ReadZWriteXRecord extends Procedure {
         }
         // System.out.printf("Read cluster 2 to %d done%n", Z);
 
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
+            stmt.setInt(11, Z);
+
+            for (int i = 0; i < fields.length; i++) {
+                stmt.setString(i + 1, fields[i]);
+            }
+            stmt.executeUpdate();
+        }
+        // System.out.printf("Write cluster 2 to %d done%n", Z);
+
         // Bunch of filler stmts
         for (int i = 0; i < YCSBConstants.FILLER_STMT_SIZE; i++) {
             try (PreparedStatement stmt = this.getPreparedStatement(conn, fillerYStmt)) {
@@ -113,6 +123,18 @@ public class ReadZWriteXRecord extends Procedure {
                 }
             }
         }
+
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, selectXStmt)) {
+            stmt.setInt(1, X);
+            try (ResultSet r = stmt.executeQuery()) {
+                while (r.next()) {
+                    for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
+                        results[i] = r.getString(i + 1);
+                    }
+                }
+            }
+        }
+        // System.out.printf("Read2 cluster 2 to %d done%n", X);
 
         // Update that mofo
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
