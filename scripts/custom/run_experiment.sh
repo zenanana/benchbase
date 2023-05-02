@@ -12,7 +12,7 @@ workloads=("$@") # array of string inputs such as "ycsb", "tpcc"
 target_file_path="target/benchbase-mysql"
 
 # declare -a terminals=("1", "2", "10", "50", "100")
-declare -a terminals=("1" "2")
+declare -a terminals=("1" "2" "10" "50" "100")
 
 
 # Run the experiment for a particular workload for various numbers of clients/terminals
