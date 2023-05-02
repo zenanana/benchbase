@@ -150,9 +150,9 @@ public class TaobenchReadZWriteXRecord extends Procedure {
         Set<Integer> set = new HashSet<Integer>();
         // Bunch of filler stmts
         for (int i = 0; i < YCSBConstants.FILLER_STMT_SIZE; i++) {
-            int randInt = randInt(1,999); //YCSBConstants.RECORD_COUNT + 1, 500000);
+            int randInt = randInt(Z_start, Z_end); //YCSBConstants.RECORD_COUNT + 1, 500000);
             while (set.contains(randInt)) {
-                randInt = randInt(1,999);//YCSBConstants.RECORD_COUNT + 1, 500000);
+                randInt = randInt(Z_start, Z_end);//YCSBConstants.RECORD_COUNT + 1, 500000);
             }
             set.add(randInt);
 
