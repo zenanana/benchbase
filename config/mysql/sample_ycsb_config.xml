@@ -28,8 +28,11 @@
             0, <!-- Delete -->
             0, <!-- ReadXWriteZ -->
             0, <!-- ReadZWriteX -->
+<<<<<<< HEAD
             0, <!-- ReadWriteXReadWriteZ -->
             0, <!-- ReadWriteZReadWriteX -->
+=======
+>>>>>>> 7b7977ac1611b158c3a82fb101372388da659741
             10, <!-- TaobenchReadXWriteZ -->
             10 <!-- TaobenchReadZWriteX -->
             </weights>
@@ -63,6 +66,12 @@
         </transactiontype>
         <transactiontype>
             <name>ReadZWriteXRecord</name>
+        </transactiontype>
+        <transactiontype>
+            <name>TaobenchReadXWriteZRecord</name>
+        </transactiontype>
+        <transactiontype>
+            <name>TaobenchReadZWriteXRecord</name>
         </transactiontype>
         <!-- END CUSTOM PROCEDURES -->
 
