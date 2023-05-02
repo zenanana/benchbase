@@ -69,23 +69,24 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
     protected TransactionStatus executeWork(Connection conn, TransactionType nextTransaction) throws UserAbortException, SQLException {
         try {
             TPCCProcedure proc = (TPCCProcedure) this.getProcedure(nextTransaction.getProcedureClass());
-            if (proc.toString() == "NewOrder") {
-                int count = scheduler.global_counter;
-                while(count != 0) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {}
-                    count = scheduler.global_counter;
-                }
-            } else if (proc.toString() == "Payment") {
-                int count = scheduler.global_counter;
-                while(count != 1) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {}
-                    count = scheduler.global_counter;
-                }
-            }
+            // if (proc.toString() == "NewOrder") {
+            //     int count = scheduler.global_counter;
+            //     while(count != 0) {
+            //         try {
+            //             Thread.sleep(10);
+            //         } catch (InterruptedException e) {}
+            //         count = scheduler.global_counter;
+            //     }
+            // } else if (proc.toString() == "Payment") {
+            //     int count = scheduler.global_counter;
+            //     while(count != 1) {
+            //         try {
+            //             Thread.sleep(10);
+            //         } catch (InterruptedException e) {}
+            //         count = scheduler.global_counter;
+            //     }
+            // }
+            // System.out.println("running " + proc.toString());
             proc.run(conn, gen, terminalWarehouseID, numWarehouses,
                     terminalDistrictLowerID, terminalDistrictUpperID, this);
         } catch (ClassCastException ex) {

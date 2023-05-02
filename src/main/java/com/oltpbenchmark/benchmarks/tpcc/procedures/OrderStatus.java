@@ -81,7 +81,7 @@ public class OrderStatus extends TPCCProcedure {
     public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
 
         /* START CUSTOM SQL */
-        startFor(conn, 0, 0); // Placeholders for args
+        startFor(conn, w_id, 0); // Placeholders for args
         /* END CUSTOM SQL */
 
         int d_id = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
@@ -296,15 +296,12 @@ public class OrderStatus extends TPCCProcedure {
     /* START CUSTOM SQL */
     private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, 3); // OrderStatus trx type = 3
-            stmt.setInt(2, w_id);
-            stmt.setInt(3, d_id);
+            stmt.setInt(1, 0); // OrderStatus trx type = 3
+            stmt.setInt(2, 0);
+            stmt.setInt(3, 7);
             stmt.execute();
         }
     }
     /* END CUSTOM SQL */
 
 }
-
-
-

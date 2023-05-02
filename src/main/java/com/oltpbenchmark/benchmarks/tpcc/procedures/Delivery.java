@@ -38,7 +38,7 @@ public class Delivery extends TPCCProcedure {
             " WHERE NO_D_ID = ? " +
             "   AND NO_W_ID = ? " +
             " ORDER BY NO_O_ID ASC " +
-            " LIMIT 1");
+            " LIMIT 1 FOR UPDATE");
 
     public SQLStmt delivDeleteNewOrderSQL = new SQLStmt(
             "DELETE FROM " + TPCCConstants.TABLENAME_NEWORDER +
@@ -91,7 +91,7 @@ public class Delivery extends TPCCProcedure {
     public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
 
         /* START CUSTOM SQL */
-        startFor(conn, 0, 0); // Placeholders for args
+        startFor(conn, w_id, 0); // Placeholders for args
         /* END CUSTOM SQL */
 
         int o_carrier_id = TPCCUtil.randomNumber(1, 10, gen);
@@ -100,9 +100,10 @@ public class Delivery extends TPCCProcedure {
 
         int[] orderIDs = new int[10];
 
+        // System.out.println("Delivery started");
         for (d_id = 1; d_id <= terminalDistrictUpperID; d_id++) {
             Integer no_o_id = getOrderId(conn, w_id, d_id);
-
+            // System.out.printf("Delivery 1 %d%n",no_o_id);
             if (no_o_id == null) {
                 continue;
             }
@@ -110,16 +111,17 @@ public class Delivery extends TPCCProcedure {
             orderIDs[d_id - 1] = no_o_id;
 
             deleteOrder(conn, w_id, d_id, no_o_id);
-
+            // System.out.println("Delivery 2");
             int customerId = getCustomerId(conn, w_id, d_id, no_o_id);
 
             updateCarrierId(conn, w_id, o_carrier_id, d_id, no_o_id);
-
+            // System.out.println("Delivery 3");
             updateDeliveryDate(conn, w_id, d_id, no_o_id);
-
+            // System.out.println("Delivery 4");
             float orderLineTotal = getOrderLineTotal(conn, w_id, d_id, no_o_id);
-
+            // System.out.println("Delivery 5");
             updateBalanceAndDelivery(conn, w_id, d_id, customerId, orderLineTotal);
+            // System.out.printf("Delivery d_id %d%n", d_id);
         }
 
         if (LOG.isTraceEnabled()) {
@@ -280,9 +282,9 @@ public class Delivery extends TPCCProcedure {
     /* START CUSTOM SQL */
     private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, 2); // Delivery trx type = 2
-            stmt.setInt(2, w_id);
-            stmt.setInt(3, d_id);
+            stmt.setInt(1, 0); // Delivery trx type = 2
+            stmt.setInt(2, 8);
+            stmt.setInt(3, 9);
             stmt.execute();
         }
     }

@@ -277,6 +277,18 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         } else {
             placeholder[1] = 5;
         }
+
+        int type = 0;
+        if (key_X == 0 && key_Z == 999) {
+            type = 0;
+        } else if (key_X == 0 && key_Z == 1000) {
+            type = 1;
+        } else if (key_X == 1 && key_Z == 999) {
+            type = 1;
+        } else if (key_X == 1 && key_Z == 1000) {
+            type = 0;
+        }
+        // System.out.printf("key X %d key Z %d type %d%n", key_X, key_Z, type);
         this.buildParameters();
         this.procReadWriteXReadWriteZRecord.run(conn, 0 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
@@ -300,40 +312,86 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         } else {
             placeholder[1] = 4;
         }
+
+        int type = 0;
+        if (key_X == 0 && key_Z == 999) {
+            type = 2;
+        } else if (key_X == 0 && key_Z == 1000) {
+            type = 3;
+        } else if (key_X == 1 && key_Z == 999) {
+            type = 3;
+        } else if (key_X == 1 && key_Z == 1000) {
+            type = 2;
+        }
+        // System.out.printf("key X %d key Z %d type %d%n", key_X, key_Z, type);
         this.buildParameters();
         this.procReadWriteZReadWriteXRecord.run(conn, 1 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
 
     private void taobenchReadXWriteZRecord(Connection conn) throws SQLException {
         // Build read_keys and write_keys lists
-        int[] read_keys_placeholder = {1,2,3,4,5,6,7,8,9,10};
-        int[] write_keys_placeholder = Arrays.copyOfRange(read_keys_placeholder, 0, 5);
+        // int[] read_keys_placeholder = {0, 1000}; // {1,2,3,4,5,6,7,8,9,10};
+        // int[] write_keys_placeholder = {0}; // Arrays.copyOfRange(read_keys_placeholder, 0, 5);
 
         // Prepare various distributions of read and write keys
-        DiscreteGenerator read_key_generator = new DiscreteGenerator(read_keys_placeholder); // Placeholder
-        ZipfianGenerator write_key_generator = new ZipfianGenerator(rng(), write_keys_placeholder.length, 0.99); // Placeholder
+        // DiscreteGenerator read_key_generator = new DiscreteGenerator(read_keys_placeholder); // Placeholder
+        // ZipfianGenerator write_key_generator = new ZipfianGenerator(rng(), write_keys_placeholder.length, 0.99); // Placeholder
 
         // Build START FOR args
-        int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE); // TODO: change to taobench context
-        int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE); // TODO: change to taobench context
+        // int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE); // TODO: change to taobench context
+        // int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE); // TODO: change to taobench context
+        int Y_start = readRecord.fillerKeyStart(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_end = readRecord.fillerKeyEnd(YCSBConstants.HOTKEY_SET_SIZE);
         Integer[] placeholder = {0, 0};
-        if (key_X == 0) {
-            placeholder[0] = 1;
-        } else {
-            placeholder[0] = 3;
-        }
-        if (key_Z == 999) {
-            placeholder[1] = 6;
-        } else {
-            placeholder[1] = 4;
-        }
+        // if (key_X == 0) {
+        //     placeholder[0] = 1;
+        // } else {
+        //     placeholder[0] = 3;
+        // }
+        // if (key_Z == 999) {
+        //     placeholder[1] = 6;
+        // } else {
+        //     placeholder[1] = 4;
+        // }
 
         this.buildParameters();
-        this.procTaobenchReadXWriteZRecord.run(conn, 1, placeholder, read_keys_placeholder, write_keys_placeholder, this.params, this.results);
+        this.procTaobenchReadXWriteZRecord.run(conn, placeholder, //read_keys_placeholder, write_keys_placeholder,
+            Y_start, Y_end, this.params, this.results);
     }
 
     private void taobenchReadZWriteXRecord(Connection conn) throws SQLException {
-        return;
+        // int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        // int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_start = readRecord.fillerKeyStart(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_end = readRecord.fillerKeyEnd(YCSBConstants.HOTKEY_SET_SIZE);
+
+        // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
+
+        Integer[] placeholder = {0, 0};
+        // if (key_X == 0) { //< 5) { //
+        //     placeholder[0] = 0;
+        // } else {
+        //     placeholder[0] = 2;
+        // }
+        // if (key_Z == 999) { //> 995) { //
+        //     placeholder[1] = 7;
+        // } else {
+        //     placeholder[1] = 5;
+        // }
+
+        // int type = 0;
+        // if (key_X == 0 && key_Z == 999) {
+        //     type = 0;
+        // } else if (key_X == 0 && key_Z == 1000) {
+        //     type = 1;
+        // } else if (key_X == 1 && key_Z == 999) {
+        //     type = 1;
+        // } else if (key_X == 1 && key_Z == 1000) {
+        //     type = 0;
+        // }
+        // System.out.printf("key X %d key Z %d type %d%n", key_X, key_Z, type);
+        this.buildParameters();
+        this.procTaobenchReadZWriteXRecord.run(conn, placeholder, Y_start, Y_end, this.params, this.results);
     }
 
     private void buildParameters() {

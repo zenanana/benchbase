@@ -498,10 +498,14 @@ public class Payment extends TPCCProcedure {
 
     /* START CUSTOM SQL */
     private void startFor(Connection conn, int w_id, int districtID) throws SQLException {
+        int type = 0;
+        if (w_id == 0) {
+            type = 1;
+        }
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, 1); // Payment trx type = 1
-            stmt.setInt(2, w_id);
-            stmt.setInt(3, districtID);
+            stmt.setInt(1, type); // Payment trx type = 1
+            stmt.setInt(2, 1);
+            stmt.setInt(3, 6);
             stmt.execute();
         }
     }

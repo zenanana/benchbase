@@ -63,7 +63,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
 
     private void createWorkerThreads() {
 
-        YCSBScheduler scheduler = new YCSBScheduler();
+        // YCSBScheduler scheduler = new YCSBScheduler();
         // TPCCScheduler scheduler = new TPCCScheduler();
         // ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         // executor.scheduleAtFixedRate(scheduler, 0, this.workConfs.get(0).getSchedBatchTime(), TimeUnit.MILLISECONDS);
@@ -71,8 +71,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         for (Worker<?> worker : workers) {
             worker.initializeState();
             // TODO(accheng): hardcoding YCSBWorker for now
-            YCSBWorker yworker = (YCSBWorker) worker;
-            yworker.set_scheduler(scheduler);
+            // YCSBWorker yworker = (YCSBWorker) worker;
+            // yworker.set_scheduler(scheduler);
             // TPCCWorker tworker = (TPCCWorker) worker;
             // tworker.set_scheduler(scheduler);
 
