@@ -32,7 +32,7 @@ for workload in "${workloads[@]}"; do
         rm -rf results/* # CLEAR "results" FOLDER -> PLEASE CHANGE THIS IF YOU WANT TO KEEP THE OTHER FILES AS WELL
         output_folder_path="experiments/results/$workload/$t_num:$time_string" # file name format: <terminals>:<time_string>
         mkdir -p "$(dirname "$output_folder_path/terminal_output.txt")"
-        java -jar $benchbase_jar -b ycsb -c $config_file_path --create=true --load=true --execute=true &> "$output_folder_path/terminal_output.txt"
+        java -jar $benchbase_jar -b $workload -c $config_file_path --create=true --load=true --execute=true &> "$output_folder_path/terminal_output.txt"
 
         # Compile the results
         echo "INFO: Done running experiment for $t_num terminals for $workload"
