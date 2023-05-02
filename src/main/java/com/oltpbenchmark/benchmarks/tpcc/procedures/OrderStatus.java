@@ -81,11 +81,7 @@ public class OrderStatus extends TPCCProcedure {
     public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
 
         /* START CUSTOM SQL */
-<<<<<<< HEAD
         startFor(conn, w_id, 0); // Placeholders for args
-=======
-        startFor(conn, 0, 0); // Placeholders for args
->>>>>>> 7b7977ac1611b158c3a82fb101372388da659741
         /* END CUSTOM SQL */
 
         int d_id = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
