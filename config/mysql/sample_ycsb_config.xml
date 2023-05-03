@@ -6,15 +6,15 @@
     <driver>com.mysql.cj.jdbc.Driver</driver>
     <url>jdbc:mysql://localhost:3306/benchbase?rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=True&amp;sslMode=DISABLED</url>
     <username>root</username>
-    <password></password>
+    <password>password</password>
     <isolation>TRANSACTION_SERIALIZABLE</isolation>
     <batchsize>128</batchsize>
 
     <!-- Scalefactor in YCSB is *1000 the number of rows in the USERTABLE-->
     <scalefactor>1</scalefactor>
 
-    <!-- The workload -->
-    <terminals>100</terminals>
+     <!-- The workload -->
+    <terminals>10</terminals>
     <works>
         <work>
             <time>30</time>
@@ -31,8 +31,9 @@
             0, <!-- ReadZWriteX -->
             0, <!-- ReadWriteXReadWriteZ -->
             0, <!-- ReadWriteZReadWriteX -->
-            10, <!-- TaobenchReadXWriteZ -->
-            10 <!-- TaobenchReadZWriteX -->
+            0, <!-- TaobenchReadXWriteZ -->
+            0, <!-- TaobenchReadZWriteX -->
+            100 <!-- YCSBTransaction -->
             </weights>
         </work>
     </works>
@@ -79,6 +80,10 @@
         </transactiontype>
         <transactiontype>
             <name>TaobenchReadZWriteXRecord</name>
+        </transactiontype>
+
+        <transactiontype>
+            <name>YCSBTransactionRecord</name>
         </transactiontype>
     </transactiontypes>
 </parameters>

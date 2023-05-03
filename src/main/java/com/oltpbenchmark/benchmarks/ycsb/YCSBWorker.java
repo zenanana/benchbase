@@ -62,12 +62,15 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
     /* START CUSTOM PROCEDURES */
     private final ReadXWriteZRecord procReadXWriteZRecord;
     private final ReadZWriteXRecord procReadZWriteXRecord;
-    private final TaobenchReadXWriteZRecord procTaobenchReadXWriteZRecord;
-    private final TaobenchReadZWriteXRecord procTaobenchReadZWriteXRecord;
     /* END CUSTOM PROCEDURES */
 
     private final ReadWriteXReadWriteZRecord procReadWriteXReadWriteZRecord;
     private final ReadWriteZReadWriteXRecord procReadWriteZReadWriteXRecord;
+
+    private final TaobenchReadXWriteZRecord procTaobenchReadXWriteZRecord;
+    private final TaobenchReadZWriteXRecord procTaobenchReadZWriteXRecord;
+
+    private final YCSBTransactionRecord procYCSBTransactionRecord;
 
     public YCSBWorker(YCSBBenchmark benchmarkModule, int id, int init_record_count) {
         super(benchmarkModule, id);
@@ -101,6 +104,8 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
 
         this.procReadWriteXReadWriteZRecord = this.getProcedure(ReadWriteXReadWriteZRecord.class);
         this.procReadWriteZReadWriteXRecord = this.getProcedure(ReadWriteZReadWriteXRecord.class);
+
+        this.procYCSBTransactionRecord = this.getProcedure(YCSBTransactionRecord.class);
     }
 
     @Override
@@ -140,6 +145,8 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
             taobenchReadXWriteZRecord(conn);
         } else if (procClass.equals(TaobenchReadZWriteXRecord.class)) {
             taobenchReadZWriteXRecord(conn);
+        } else if (procClass.equals(YCSBTransactionRecord.class)) {
+            ycsbTransactionRecord(conn);
         }
 
         // if (procClass.equals(ReadZWriteXRecord.class)) {
@@ -393,6 +400,26 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
         // System.out.printf("key X %d key Z %d type %d%n", key_X, key_Z, type);
         this.buildParameters();
         this.procTaobenchReadZWriteXRecord.run(conn, placeholder, Y_start, Y_end, this.params, this.results);
+    }
+
+    private void ycsbTransactionRecord(Connection conn) throws SQLException {
+        ArrayList<Integer> keys = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            int new_key = readRecord.nextInt();
+            while (keys.contains(new_key)) {
+                new_key = readRecord.nextInt();
+            }
+            keys.add(new_key);
+        }
+        System.out.println("keys: " + keys.toString());
+
+        // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
+
+        Integer[] placeholder = {0, 0};
+
+        // System.out.printf("key X %d key Z %d type %d%n", key_X, key_Z, type);
+        this.buildParameters();
+        this.procYCSBTransactionRecord.run(conn, placeholder, keys, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
 
     private void buildParameters() {
