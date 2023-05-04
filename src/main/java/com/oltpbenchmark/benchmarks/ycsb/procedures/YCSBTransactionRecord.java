@@ -90,7 +90,7 @@ public class YCSBTransactionRecord extends Procedure {
         ArrayList<Integer> hot_keys = new ArrayList<>();
         hot_keys.add(0);
         hot_keys.add(1);
-        hot_keys.add(2);
+        // hot_keys.add(2);
         // hot_keys.add(3);
 
         List<Integer> present_hot_keys = new ArrayList<>();
@@ -136,7 +136,7 @@ public class YCSBTransactionRecord extends Procedure {
 
         // Fetch it!
         for (int i = 0; i < first_half.size(); i++) {
-            System.out.printf("First half %d%n", first_half.get(i));
+            // System.out.printf("First half %d%n", first_half.get(i));
             try (PreparedStatement stmt = this.getPreparedStatement(conn, selectXStmt)) {
                 stmt.setInt(1, first_half.get(i));
                 try (ResultSet r = stmt.executeQuery()) {
@@ -177,9 +177,9 @@ public class YCSBTransactionRecord extends Procedure {
             } else {
                 try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
                     // TODO(accheng): update this when we fix rollback bug
-                    // stmt.setInt(11, keys.get(i));
-                    int randInt = randInt(YCSBConstants.RECORD_COUNT + 1, 500000);
-                    stmt.setInt(11, randInt);
+                    stmt.setInt(11, keys.get(i));
+                    // int randInt = randInt(YCSBConstants.RECORD_COUNT + 1, 500000);
+                    // stmt.setInt(11, randInt);
                     for (int j = 0; j < fields.length; j++) {
                         stmt.setString(j + 1, fields[j]);
                     }
@@ -202,7 +202,7 @@ public class YCSBTransactionRecord extends Procedure {
 
         // Update that mofo
         for (int i = 0; i < second_half.size(); i++) {
-            System.out.printf("Second half %d%n", second_half.get(i));
+            // System.out.printf("Second half %d%n", second_half.get(i));
             try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
                 stmt.setInt(11, second_half.get(i));
 

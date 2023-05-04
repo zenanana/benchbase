@@ -411,7 +411,7 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
             }
             keys.add(new_key);
         }
-        System.out.println("keys: " + keys.toString());
+        // System.out.println("keys: " + keys.toString());
 
         // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
 
