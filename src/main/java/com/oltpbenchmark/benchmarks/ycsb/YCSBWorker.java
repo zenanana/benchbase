@@ -38,7 +38,8 @@ import java.util.Random;
  *
  * @author pavlo
  */
-class YCSBWorker extends Worker<YCSBBenchmark> {
+public class YCSBWorker extends Worker<YCSBBenchmark> {
+    private YCSBScheduler scheduler;
 
     private final ZipfianGenerator readRecord;
     private static CounterGenerator insertRecord;
@@ -55,6 +56,11 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
     private final InsertRecord procInsertRecord;
     private final DeleteRecord procDeleteRecord;
 
+    /* START CUSTOM PROCEDURES */
+    private final ReadXWriteZRecord procReadXWriteZRecord;
+    private final ReadZWriteXRecord procReadZWriteXRecord;
+    /* END CUSTOM PROCEDURES */
+
     public YCSBWorker(YCSBBenchmark benchmarkModule, int id, int init_record_count) {
         super(benchmarkModule, id);
         this.data = new char[benchmarkModule.fieldSize];
@@ -69,7 +75,7 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
         }
 
         // This is a minor speed-up to avoid having to invoke the hashmap look-up
-        // everytime we want to execute a txn. This is important to do on 
+        // everytime we want to execute a txn. This is important to do on
         // a client machine with not a lot of cores
         this.procUpdateRecord = this.getProcedure(UpdateRecord.class);
         this.procScanRecord = this.getProcedure(ScanRecord.class);
@@ -77,6 +83,11 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
         this.procReadModifyWriteRecord = this.getProcedure(ReadModifyWriteRecord.class);
         this.procInsertRecord = this.getProcedure(InsertRecord.class);
         this.procDeleteRecord = this.getProcedure(DeleteRecord.class);
+
+        /* START CUSTOM PROCEDURES */
+        this.procReadXWriteZRecord = this.getProcedure(ReadXWriteZRecord.class);
+        this.procReadZWriteXRecord = this.getProcedure(ReadZWriteXRecord.class);
+        /* END CUSTOM PROCEDURES */
     }
 
     @Override
@@ -96,7 +107,26 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
         } else if (procClass.equals(UpdateRecord.class)) {
             updateRecord(conn);
         }
+
+        /* START CUSTOM PROCEDURES */
+        if (scheduler.global_counter == 0) {
+            readZWriteXRecord(conn);
+        } else {
+            readXWriteZRecord(conn);
+        }
+
+        // if (procClass.equals(ReadZWriteXRecord.class)) {
+        //     readZWriteXRecord(conn);
+        // } else if (procClass.equals(ReadXWriteZRecord.class)) {
+        //     readXWriteZRecord(conn);
+        // }
+        /* END CUSTOM PROCEDURES */
+
         return (TransactionStatus.SUCCESS);
+    }
+
+    public void set_scheduler(YCSBScheduler scheduler) {
+        this.scheduler = scheduler;
     }
 
     private void updateRecord(Connection conn) throws SQLException {
@@ -138,6 +168,55 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
         int keyname = readRecord.nextInt();
         this.procDeleteRecord.run(conn, keyname);
     }
+
+    /* START CUSTOM PROCEDURES */
+    private void readXWriteZRecord(Connection conn) throws SQLException {
+        int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_start = readRecord.fillerKeyStart(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_end = readRecord.fillerKeyEnd(YCSBConstants.HOTKEY_SET_SIZE);
+
+        // System.out.println("ReadXWriteZ: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
+
+        Integer[] placeholder = {0, 0};
+        if (key_X == 0) {
+            placeholder[0] = 0;
+        } else {
+            placeholder[0] = 2;
+        }
+        if (key_Z == 999) {
+            placeholder[1] = 7;
+        } else {
+            placeholder[1] = 5;
+        }
+        this.buildParameters();
+        this.procReadXWriteZRecord.run(conn, 0 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+    }
+
+    private void readZWriteXRecord(Connection conn) throws SQLException {
+        int key_X = readRecord.nextStartingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int key_Z = readRecord.nextEndingHotkey(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_start = readRecord.fillerKeyStart(YCSBConstants.HOTKEY_SET_SIZE);
+        int Y_end = readRecord.fillerKeyEnd(YCSBConstants.HOTKEY_SET_SIZE);
+
+        // System.out.println("ReadZWriteX: key_X: " + key_X + " | key_Z: " + key_Z + " | key_Y_start: " + Y_start + " | key_Y_end: " + Y_end + "\n");
+
+        Integer[] placeholder = {0, 0};
+        if (key_X == 0) {
+            placeholder[0] = 1;
+        } else {
+            placeholder[0] = 3;
+        }
+        if (key_Z == 999) {
+            placeholder[1] = 6;
+        } else {
+            placeholder[1] = 4;
+        }
+        this.buildParameters();
+        this.procReadZWriteXRecord.run(conn, 1 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+    }
+    /* END CUSTOM PROCEDURES */
+
 
     private void buildParameters() {
         for (int i = 0; i < this.params.length; i++) {

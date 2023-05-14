@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A generator of a zipfian distribution. It produces a sequence of items, such that some items are more popular than others, according
@@ -301,5 +302,32 @@ public class ZipfianGenerator extends IntegerGenerator {
     @Override
     public double mean() {
         throw new UnsupportedOperationException("@todo implement ZipfianGenerator.mean()");
+    }
+
+    /**
+     * get random integer in range [min, max]
+     */
+    public int randInt(int min, int max) {
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+
+    public int nextStartingHotkey(int hotkey_set_size) {
+        return randInt(0, hotkey_set_size - 1);
+    }
+
+    public int nextEndingHotkey(int hotkey_set_size) {
+        return randInt((int)items - hotkey_set_size + 1, (int)items);
+    }
+
+    public int fillerKeyStart(int hotkey_set_size) {
+        return hotkey_set_size;
+    }
+
+    public int fillerKeyEnd(int hotkey_set_size) {
+        return (int)items - hotkey_set_size;
+    }
+
+    public int nextFillerKey(int hotkey_set_size) {
+        return randInt(hotkey_set_size, (int)items - hotkey_set_size);
     }
 }

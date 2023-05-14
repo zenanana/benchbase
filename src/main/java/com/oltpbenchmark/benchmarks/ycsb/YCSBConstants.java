@@ -38,4 +38,11 @@ public abstract class YCSBConstants {
 
     public static final String TABLE_NAME = "usertable";
 
+    /**
+     * Our own variables
+     */
+    public static final int HOTKEY_SET_SIZE = 2; // size of our  hotkey set we draw from
+    public static final int FILLER_STMT_SIZE = 10; // length between read and write stmts
+    public static final String START_TRX_FOR_STMT = "START TRANSACTION ? FOR (?, ?)";
+    public static final String COMMIT_TRX_STMT = "COMMIT";
 }

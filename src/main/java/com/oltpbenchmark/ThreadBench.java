@@ -23,11 +23,16 @@ import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.StringUtil;
+import com.oltpbenchmark.benchmarks.ycsb.YCSBScheduler;
+import com.oltpbenchmark.benchmarks.ycsb.YCSBWorker;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ThreadBench implements Thread.UncaughtExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ThreadBench.class);
@@ -56,8 +61,16 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
 
     private void createWorkerThreads() {
 
+        YCSBScheduler scheduler = new YCSBScheduler();
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(scheduler, 0, 100, TimeUnit.MILLISECONDS);
+
         for (Worker<?> worker : workers) {
             worker.initializeState();
+            // TODO(accheng): hardcoding YCSBWorker for now
+            YCSBWorker yworker = (YCSBWorker) worker;
+            yworker.set_scheduler(scheduler);
+
             Thread thread = new Thread(worker);
             thread.setUncaughtExceptionHandler(this);
             thread.start();
