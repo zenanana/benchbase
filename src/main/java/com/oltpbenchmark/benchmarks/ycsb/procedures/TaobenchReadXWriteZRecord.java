@@ -100,17 +100,58 @@ public class TaobenchReadXWriteZRecord extends Procedure {
         // }
         // java.util.Collections.shuffle(write_nonhotkeys);
 
-        int[] read_keys = {0, 1, 2, 3};
+        int[] read_keys = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         int[] write_keys = {0};
 
-        int type = randInt(0,3);
-        if (type == 1) {
-            write_keys[0] = 1;
-        } else if (type == 2) {
-            write_keys[0] = 2;
-        } else if (type == 3) {
-            write_keys[0] = 3;
+        int type = randInt(0,7);
+        boolean finalWrite = false;
+        int percent = randInt(0,99);
+        if (percent < 27) { // 15 50 65 43 35
+            finalWrite = true;
+            if (type == 1) {
+                write_keys[0] = 1;
+            } else if (type == 2) {
+                write_keys[0] = 2;
+            } else if (type == 3) {
+                write_keys[0] = 3;
+            } else if (type == 4) {
+                write_keys[0] = 4;
+            } else if (type == 5) {
+                write_keys[0] = 5;
+            } else if (type == 6) {
+                write_keys[0] = 6;
+            } else if (type == 7) {
+                write_keys[0] = 7;
+            }
+            // } else if (type == 8) {
+            //     write_keys[0] = 8;
+            // } else if (type == 9) {
+            //     write_keys[0] = 9;
+            // }
+
+            if (randInt(0,99) < 1) {
+                type = randInt(0,7);
+            }
+        } else {
+            type = 11;
         }
+        // } else if (percent < 70) {
+        //     type = 11;
+        // } else {
+        //     type = 12;
+        //     write_keys[0] = randInt(0,7);
+        // }
+
+        // else if (type == 6) {
+        //     write_keys[0] = 6;
+        // } else if (type == 7) {
+        //     write_keys[0] = 7;
+        // } else if (type == 8) {
+        //     write_keys[0] = 8;
+        // } else if (type == 9) {
+        //     write_keys[0] = 9;
+        // }
+
         // if (type == 0) {
         //     if (randInt(0,1) == 0) {
         //         read_keys[0] = 0;
@@ -152,20 +193,28 @@ public class TaobenchReadXWriteZRecord extends Procedure {
         //         write_keys[0] = 1000;
         //     }
         // }
-        int num_cold_keys = randInt(20, 85);
+        int num_cold_keys = randInt(20, 55);//85);
+        if (!finalWrite) { //  || type != 12
+        if (randInt(0,1) < 1) {
+            num_cold_keys = randInt(1,10);
+        }
+        }
         // System.out.printf("Start taobench type %d start %d end %d write %d%n", type, Z_start, Z_end, write_keys[0]);
         //  System.out.printf("Type %d start %d end %d write %d%n", type, read_keys[0], read_keys[1], write_keys[0]);
 
         // START TRANSACTION
         // Start trx for stmt
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
-            stmt.setInt(1, type);
-            stmt.setInt(2, trx_args[0]);
-            stmt.setInt(3, trx_args[1]);
-            stmt.execute();
+        if (type < 10) { //  || type == 12
+            try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
+                stmt.setInt(1, write_keys[0]+1); //type+1); //
+                stmt.setInt(2, trx_args[0]);
+                stmt.setInt(3, trx_args[1]);
+                stmt.execute();
+            }
         }
 
         // Read from set of read hotkeys
+        if (finalWrite || type == 11) { // == 12
         for (int i = 0; i < read_keys.length; i++) {
             boolean willWrite = false;
             for (int wk : write_keys) {
@@ -188,7 +237,9 @@ public class TaobenchReadXWriteZRecord extends Procedure {
                 }
             }
         }
+        }
 
+        if (finalWrite) {
         Set<Integer> set = new HashSet<Integer>();
         // Bunch of filler stmts
         for (int i = 0; i < num_cold_keys; i++) {
@@ -220,7 +271,9 @@ public class TaobenchReadXWriteZRecord extends Procedure {
                 }
             }
         }
+        }
 
+        if (finalWrite) { //  || type >= 11  || type == 12
         for (int i = 0; i < read_keys.length; i++) {
             boolean willWrite = false;
             for (int wk : write_keys) {
@@ -243,17 +296,20 @@ public class TaobenchReadXWriteZRecord extends Procedure {
                 }
             }
         }
+        }
 
         // Write to set of hot keys
-        for (int i = 0; i < write_keys.length; i++) {
-            // System.out.printf("Write %d%n", write_keys[i]);
-            try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
-                stmt.setInt(11, write_keys[i]);
+        if (finalWrite) { // == 11 //  || type >= 11  || type == 12
+            for (int i = 0; i < write_keys.length; i++) {
+                // System.out.printf("Write %d%n", write_keys[i]);
+                try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
+                    stmt.setInt(11, write_keys[i]);
 
-                for (int j = 0; j < fields.length; j++) {
-                    stmt.setString(j + 1, fields[j]);
+                    for (int j = 0; j < fields.length; j++) {
+                        stmt.setString(j + 1, fields[j]);
+                    }
+                    stmt.executeUpdate();
                 }
-                stmt.executeUpdate();
             }
         }
 

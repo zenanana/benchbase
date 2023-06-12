@@ -90,40 +90,129 @@ public class YCSBTransactionRecord extends Procedure {
         ArrayList<Integer> hot_keys = new ArrayList<>();
         hot_keys.add(0);
         hot_keys.add(1);
-        // hot_keys.add(2);
-        // hot_keys.add(3);
+        hot_keys.add(2);
+        hot_keys.add(3);
+        hot_keys.add(4);
+        hot_keys.add(5);
+        hot_keys.add(6);
+        hot_keys.add(7);
+        hot_keys.add(8);
+        hot_keys.add(9);
 
         List<Integer> present_hot_keys = new ArrayList<>();
-        for (int i = 0; i < keys.size() / 2; i++) {
+        List<Integer> other_keys = new ArrayList<>();
+        for (int i = 0; i < keys.size(); i++) {
             if (hot_keys.contains(keys.get(i))) {
                 present_hot_keys.add(keys.get(i));
+            } else {
+                other_keys.add(keys.get(i));
             }
         }
-        for (int i = 0; i < present_hot_keys.size() / 2; i++) {
-            if (keys.contains(present_hot_keys.get(i))) {
-                keys.remove(present_hot_keys.get(i));
-            }
-        }
+        // System.out.println("keys: " + other_keys.toString() + " present_hot_keys: " + present_hot_keys.toString());
         java.util.Collections.shuffle(present_hot_keys);
 
         ArrayList<Integer> first_half = new ArrayList<>();
-        for (int i = 0; i < present_hot_keys.size(); i++) {
-            first_half.add(present_hot_keys.get(i));
-        }
+        // for (int i = 0; i < present_hot_keys.size(); i++) {
+        //     first_half.add(present_hot_keys.get(i));
+        // }
         ArrayList<Integer> second_half = new ArrayList<>();
-        if (first_half.size() > 0) {
-            second_half.add(first_half.remove(0));
-        }
+        // int count = 0;
+        // while (first_half.size() > 0 && count < 2) {
+        //     second_half.add(first_half.remove(first_half.size() - 1));
+        //     count++;
+        // }
         // for (int i = present_hot_keys.size() - 2; i < present_hot_keys.size(); i++) {
         //     second_half.add(present_hot_keys.get(i));
         // }
 
-        int type = 0;
-        if (second_half.contains(0)) {
-            type = 0;
-        } else {
-            type = 1;
+        // int type = 0;
+        // if (second_half.contains(0)) {
+        //     type = 0;
+        // } else {
+        //     type = 1;
+        // }
+
+        // int type = 0;
+        // if (present_hot_keys.contains(0)) {
+        //     // if (present_hot_keys.indexOf(0) > present_hot_keys.size() / 2) {
+        //     //     type = 1;
+        //     //     second_half.add(0);
+        //     // }
+        //     if (type == 0) {
+        //         first_half.add(0);
+        //     } else {
+        //         second_half.add(0);
+        //     }
+        // }
+        // // int type = randInt(0,1);
+        // // if (type == 0) {
+        // //         first_half.add(0);
+        // //     } else {
+        // //         second_half.add(0);
+        // //     }
+        // if (present_hot_keys.contains(1)) {
+        //     if (type == 0) {
+        //         second_half.add(1);
+        //     } else {
+        //         first_half.add(1);
+        //     }
+        // }
+        // if (present_hot_keys.contains(2)) {
+        //     if (type == 0) {
+        //         first_half.add(2);
+        //     } else {
+        //         second_half.add(2);
+        //     }
+        // }
+        // if (present_hot_keys.contains(3)) {
+        //     if (type == 0) {
+        //         second_half.add(3);
+        //     } else {
+        //         first_half.add(3);
+        //     }
+        // }
+        int type = randInt(0,3);
+        if (present_hot_keys.contains(0)) {
+            if (type == 0) {
+                second_half.add(0);
+                second_half.add(4);
+                second_half.add(8);
+            } else {
+                first_half.add(0);
+                first_half.add(4);
+                first_half.add(8);
+            }
         }
+        if (present_hot_keys.contains(1)) {
+            if (type == 1) {
+                second_half.add(1);
+                second_half.add(5);
+                second_half.add(9);
+            } else {
+                first_half.add(1);
+                first_half.add(5);
+                first_half.add(9);
+            }
+        }
+        if (present_hot_keys.contains(2)) {
+            if (type == 2) {
+                second_half.add(2);
+                second_half.add(6);
+            } else {
+                first_half.add(2);
+                first_half.add(6);
+            }
+        }
+        if (present_hot_keys.contains(3)) {
+            if (type == 3) {
+                second_half.add(3);
+                second_half.add(7);
+            } else {
+                first_half.add(3);
+                first_half.add(7);
+            }
+        }
+        // System.out.printf("type %d first_half %s second_half %s%n", type, first_half.toString(), second_half.toString());
 
         // Start trx for stmt
         try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
@@ -162,10 +251,10 @@ public class YCSBTransactionRecord extends Procedure {
 
         Set<Integer> set = new HashSet<Integer>();
         // Bunch of filler stmts
-        for (int i = 0; i < keys.size(); i++) {
-            if (randInt(0,1) == 0) {
+        for (int i = 0; i < other_keys.size(); i++) {
+            if (randInt(0,1) < 1) {
                 try (PreparedStatement stmt = this.getPreparedStatement(conn, fillerYStmt)) {
-                    stmt.setInt(1, keys.get(i));
+                    stmt.setInt(1, other_keys.get(i));
                     try (ResultSet r = stmt.executeQuery()) {
                         while (r.next()) {
                             for (int j = 0; j < YCSBConstants.NUM_FIELDS; j++) {
@@ -177,7 +266,7 @@ public class YCSBTransactionRecord extends Procedure {
             } else {
                 try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
                     // TODO(accheng): update this when we fix rollback bug
-                    stmt.setInt(11, keys.get(i));
+                    stmt.setInt(11, other_keys.get(i));
                     // int randInt = randInt(YCSBConstants.RECORD_COUNT + 1, 500000);
                     // stmt.setInt(11, randInt);
                     for (int j = 0; j < fields.length; j++) {

@@ -50,6 +50,11 @@ public class FlippedNewOrder extends TPCCProcedure {
             "   SET W_YTD = W_YTD + 0.000001 " +
             " WHERE W_ID = ? ");
 
+    public final SQLStmt stmtGetDistNoUpdateSQL = new SQLStmt(
+            "SELECT D_NEXT_O_ID, D_TAX " +
+            "  FROM " + TPCCConstants.TABLENAME_DISTRICT +
+            " WHERE D_W_ID = ? AND D_ID = ?");
+
     public final SQLStmt stmtGetDistSQL = new SQLStmt(
             "SELECT D_NEXT_O_ID, D_TAX " +
             "  FROM " + TPCCConstants.TABLENAME_DISTRICT +
@@ -104,7 +109,8 @@ public class FlippedNewOrder extends TPCCProcedure {
     /* END CUSTOM SQL */
 
 
-    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int next_id,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
 
         int districtID = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
         int customerID = TPCCUtil.getCustomerID(gen);
@@ -134,12 +140,12 @@ public class FlippedNewOrder extends TPCCProcedure {
             itemIDs[numItems - 1] = TPCCConfig.INVALID_ITEM_ID;
         }
 
-        newOrderTransaction(terminalWarehouseID, districtID, customerID, numItems, allLocal, itemIDs, supplierWarehouseIDs, orderQuantities, conn);
+        newOrderTransaction(terminalWarehouseID, districtID, customerID, terminalDistrictLowerID, terminalDistrictUpperID,
+            numItems, allLocal, itemIDs, supplierWarehouseIDs, orderQuantities, conn);
 
     }
 
-
-    private void newOrderTransaction(int w_id, int d_id, int c_id,
+    private void newOrderTransaction(int w_id, int d_id, int c_id, int terminalDistrictLowerID, int terminalDistrictUpperID,
                                      int o_ol_cnt, int o_all_local, int[] itemIDs,
                                      int[] supplierWarehouseIDs, int[] orderQuantities, Connection conn) throws SQLException {
 
@@ -147,13 +153,20 @@ public class FlippedNewOrder extends TPCCProcedure {
         startFor(conn, w_id, d_id);
         /* END CUSTOM SQL */
 
+        getWarehouse(conn, w_id);
+
         getCustomer(conn, w_id, d_id, c_id);
 
-        int d_next_o_id = getDistrict(conn, w_id, d_id);
+        for (int i = terminalDistrictLowerID; i <= terminalDistrictLowerID; i++) {
+            if (i != d_id) {
+                getDistrictNoUpdate(conn, w_id, d_id);
+            }
+        }
 
-        insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
 
-        insertNewOrder(conn, w_id, d_id, d_next_o_id);
+        // insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
+
+        // insertNewOrder(conn, w_id, d_id, d_next_o_id);
 
         try (PreparedStatement stmtUpdateStock = this.getPreparedStatement(conn, stmtUpdateStockSQL);
              PreparedStatement stmtInsertOrderLine = this.getPreparedStatement(conn, stmtInsertOrderLineSQL)) {
@@ -172,7 +185,7 @@ public class FlippedNewOrder extends TPCCProcedure {
 
                 String ol_dist_info = getDistInfo(d_id, s);
 
-                stmtInsertOrderLine.setInt(1, d_next_o_id);
+                stmtInsertOrderLine.setInt(1, 0); // d_next_o_id
                 stmtInsertOrderLine.setInt(2, d_id);
                 stmtInsertOrderLine.setInt(3, w_id);
                 stmtInsertOrderLine.setInt(4, ol_number);
@@ -200,15 +213,15 @@ public class FlippedNewOrder extends TPCCProcedure {
 
             }
 
-            stmtInsertOrderLine.executeBatch();
-            stmtInsertOrderLine.clearBatch();
+            // stmtInsertOrderLine.executeBatch();
+            // stmtInsertOrderLine.clearBatch();
 
             stmtUpdateStock.executeBatch();
             stmtUpdateStock.clearBatch();
 
         }
 
-        getWarehouse(conn, w_id);
+        int d_next_o_id = getDistrict(conn, w_id, d_id);
 
         updateDistrict(conn, w_id, d_id);
     }
@@ -330,6 +343,19 @@ public class FlippedNewOrder extends TPCCProcedure {
         }
     }
 
+    private int getDistrictNoUpdate(Connection conn, int w_id, int d_id) throws SQLException {
+        try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistNoUpdateSQL)) {
+            stmtGetDist.setInt(1, w_id);
+            stmtGetDist.setInt(2, d_id);
+            try (ResultSet rs = stmtGetDist.executeQuery()) {
+                if (!rs.next()) {
+                    throw new RuntimeException("D_ID=" + d_id + " D_W_ID=" + w_id + " not found!");
+                }
+                return rs.getInt("D_NEXT_O_ID");
+            }
+        }
+    }
+
     private void getWarehouse(Connection conn, int w_id) throws SQLException {
         // try (PreparedStatement stmtGetWhse = this.getPreparedStatement(conn, stmtGetWhseSQL)) {
         //     stmtGetWhse.setInt(1, w_id);
@@ -371,4 +397,6 @@ public class FlippedNewOrder extends TPCCProcedure {
         }
     }
     /* END CUSTOM SQL */
+    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 }

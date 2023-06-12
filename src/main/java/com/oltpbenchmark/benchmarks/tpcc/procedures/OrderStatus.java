@@ -78,10 +78,11 @@ public class OrderStatus extends TPCCProcedure {
     );
     /* END CUSTOM SQL */
 
-    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int next_id,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
 
         /* START CUSTOM SQL */
-        startFor(conn, w_id, 0); // Placeholders for args
+        // startFor(conn, w_id, 0); // Placeholders for args
         /* END CUSTOM SQL */
 
         int d_id = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
@@ -295,13 +296,14 @@ public class OrderStatus extends TPCCProcedure {
 
     /* START CUSTOM SQL */
     private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, 0); // OrderStatus trx type = 3
-            stmt.setInt(2, 0);
-            stmt.setInt(3, 7);
-            stmt.execute();
-        }
+        // try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+        //     stmt.setInt(1, 0); // OrderStatus trx type = 3
+        //     stmt.setInt(2, 0);
+        //     stmt.setInt(3, 7);
+        //     stmt.execute();
+        // }
     }
     /* END CUSTOM SQL */
-
+    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 }

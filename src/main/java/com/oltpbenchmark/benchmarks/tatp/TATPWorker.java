@@ -56,18 +56,21 @@ public class TATPWorker extends Worker<TATPBenchmark> {
     public enum Transaction {
         DeleteCallForwarding(new TransactionInvoker<DeleteCallForwarding>() {
             public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
-                long s_id = TATPUtil.getSubscriberId(subscriberSize);
+                long s_id = TATPUtil.getZipfSubscriberId() + 1; //TATPUtil.getSubscriberId(subscriberSize); //
+                long sf_type = TATPUtil.number(1, 4);
                 ((DeleteCallForwarding) proc).run(
                         conn,
-                        TATPUtil.padWithZero(s_id), // s_id
-                        TATPUtil.number(1, 4).byteValue(), // sf_type
+                        s_id,
+                        // TATPUtil.padWithZero(s_id), // s_id
+                        sf_type, // sf_type as long
+                        // TATPUtil.number(1, 4).byteValue(), // sf_type
                         (byte) (8 * TATPUtil.number(0, 2)) // start_time
                 );
             }
         }),
         GetAccessData(new TransactionInvoker<GetAccessData>() {
             public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
-                long s_id = TATPUtil.getSubscriberId(subscriberSize);
+                long s_id = TATPUtil.getZipfSubscriberId() + 1; //TATPUtil.getSubscriberId(subscriberSize);
                 ((GetAccessData) proc).run(
                         conn,
                         s_id, // s_id
@@ -77,7 +80,7 @@ public class TATPWorker extends Worker<TATPBenchmark> {
         }),
         GetNewDestination(new TransactionInvoker<GetNewDestination>() {
             public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
-                long s_id = TATPUtil.getSubscriberId(subscriberSize);
+                long s_id = TATPUtil.getZipfSubscriberId() + 1; //TATPUtil.getSubscriberId(subscriberSize);
                 ((GetNewDestination) proc).run(
                         conn,
                         s_id, // s_id
@@ -89,7 +92,7 @@ public class TATPWorker extends Worker<TATPBenchmark> {
         }),
         GetSubscriberData(new TransactionInvoker<GetSubscriberData>() {
             public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
-                long s_id = TATPUtil.getSubscriberId(subscriberSize);
+                long s_id = TATPUtil.getZipfSubscriberId() + 1; //TATPUtil.getSubscriberId(subscriberSize);
                 ((GetSubscriberData) proc).run(
                         conn,
                         s_id // s_id
@@ -98,7 +101,7 @@ public class TATPWorker extends Worker<TATPBenchmark> {
         }),
         InsertCallForwarding(new TransactionInvoker<InsertCallForwarding>() {
             public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
-                long s_id = TATPUtil.getSubscriberId(subscriberSize);
+                long s_id = TATPUtil.getZipfSubscriberId() + 1; //TATPUtil.getSubscriberId(subscriberSize); //
                 ((InsertCallForwarding) proc).run(
                         conn,
                         TATPUtil.padWithZero(s_id), // sub_nbr
@@ -111,7 +114,7 @@ public class TATPWorker extends Worker<TATPBenchmark> {
         }),
         UpdateLocation(new TransactionInvoker<UpdateLocation>() {
             public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
-                long s_id = TATPUtil.getSubscriberId(subscriberSize);
+                long s_id = TATPUtil.getZipfSubscriberId() + 1; //TATPUtil.getSubscriberId(subscriberSize);
                 ((UpdateLocation) proc).run(
                         conn,
                         TATPUtil.number(0, Integer.MAX_VALUE).intValue(), // vlr_location
@@ -119,15 +122,29 @@ public class TATPWorker extends Worker<TATPBenchmark> {
                 );
             }
         }),
+        // UpdateSubscriberData(new TransactionInvoker<UpdateSubscriberData>() {
+        //     public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
+        //         long s_id = TATPUtil.getSubscriberId(subscriberSize);
+        //         ((UpdateSubscriberData) proc).run(
+        //                 conn,
+        //                 s_id, // s_id
+        //                 TATPUtil.number(0, 1).byteValue(), // bit_1
+        //                 TATPUtil.number(0, 255).shortValue(), // data_a
+        //                 TATPUtil.number(1, 4).byteValue() // sf_type
+        //         );
+        //     }
+        // }),
         UpdateSubscriberData(new TransactionInvoker<UpdateSubscriberData>() {
             public void invoke(Connection conn, Procedure proc, long subscriberSize) throws SQLException {
-                long s_id = TATPUtil.getSubscriberId(subscriberSize);
+                long s_id = TATPUtil.getZipfSubscriberId() + 1; //TATPUtil.getSubscriberId(subscriberSize); //
+                long sf_type = TATPUtil.number(1, 4);
                 ((UpdateSubscriberData) proc).run(
                         conn,
                         s_id, // s_id
                         TATPUtil.number(0, 1).byteValue(), // bit_1
                         TATPUtil.number(0, 255).shortValue(), // data_a
-                        TATPUtil.number(1, 4).byteValue() // sf_type
+                        sf_type
+                        // TATPUtil.number(1, 4).byteValue() // sf_type
                 );
             }
         }),

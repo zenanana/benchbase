@@ -51,7 +51,8 @@ public class StockLevel extends TPCCProcedure {
             " AND S_I_ID = OL_I_ID" +
             " AND S_QUANTITY < ?");
 
-    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int next_id,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
 
         int threshold = TPCCUtil.randomNumber(10, 20, gen);
         int d_id = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
@@ -113,4 +114,7 @@ public class StockLevel extends TPCCProcedure {
             }
         }
     }
+
+    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 }

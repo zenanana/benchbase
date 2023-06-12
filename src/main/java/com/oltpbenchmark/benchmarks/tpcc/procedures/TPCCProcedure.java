@@ -28,4 +28,6 @@ public abstract class TPCCProcedure extends Procedure {
 
     public abstract void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException;
 
+    public abstract void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int next_id, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException;
+
 }

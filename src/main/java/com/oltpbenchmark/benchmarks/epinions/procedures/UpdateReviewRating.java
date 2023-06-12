@@ -22,15 +22,46 @@ import com.oltpbenchmark.api.SQLStmt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UpdateReviewRating extends Procedure {
+
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        "START TRANSACTION ? FOR (?, ?)"
+    );
+
+    public final SQLStmt selectReview = new SQLStmt(
+            "SELECT * FROM review WHERE i_id=? AND u_id=?"
+    );
 
     public final SQLStmt updateReview = new SQLStmt(
             "UPDATE review SET rating = ? WHERE i_id=? AND u_id=?"
     );
 
     public void run(Connection conn, long iid, long uid, int rating) throws SQLException {
+        int type = (int) iid; // Math.min(iid, uid);
+        if (type > 30) {
+            type = 31;
+        }
+        // System.out.printf("UIT iid: %d uid: %d type%d%n", iid, uid, type);
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+            stmt.setInt(1, type + 1); // NewOrder trx type = 0
+            stmt.setInt(2, 0);
+            stmt.setInt(3, 7);
+            stmt.execute();
+        }
+
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, selectReview)) {
+            stmt.setLong(1, iid);
+            stmt.setLong(2, uid);
+            try (ResultSet r = stmt.executeQuery()) {
+                while (r.next()) {
+                    continue;
+                }
+            }
+        }
+
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateReview)) {
             stmt.setInt(1, rating);
             stmt.setLong(2, iid);
