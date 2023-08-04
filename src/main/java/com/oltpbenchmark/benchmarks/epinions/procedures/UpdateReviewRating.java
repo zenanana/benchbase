@@ -39,18 +39,24 @@ public class UpdateReviewRating extends Procedure {
             "UPDATE review SET rating = ? WHERE i_id=? AND u_id=?"
     );
 
-    public void run(Connection conn, long iid, long uid, int rating) throws SQLException {
+    public void run(Connection conn, long iid, long uid, int rating, int schedule) throws SQLException {
         int type = (int) iid; // Math.min(iid, uid);
         if (type > 30) {
             type = 31;
         }
         // System.out.printf("UIT iid: %d uid: %d type%d%n", iid, uid, type);
+
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, type + 1); // NewOrder trx type = 0
+            if (schedule != 0) {
+                stmt.setInt(1, type + 1); // NewOrder trx type = 0
+            } else {
+                stmt.setInt(1, 0);
+            }
             stmt.setInt(2, 0);
             stmt.setInt(3, 7);
             stmt.execute();
         }
+
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, selectReview)) {
             stmt.setLong(1, iid);

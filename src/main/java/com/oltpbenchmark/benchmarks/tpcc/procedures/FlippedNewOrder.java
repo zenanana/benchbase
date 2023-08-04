@@ -110,7 +110,7 @@ public class FlippedNewOrder extends TPCCProcedure {
 
 
     public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int next_id,
-    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+    int terminalDistrictLowerID, int terminalDistrictUpperID, int schedule, TPCCWorker w) throws SQLException {
 
         int districtID = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
         int customerID = TPCCUtil.getCustomerID(gen);
@@ -140,17 +140,19 @@ public class FlippedNewOrder extends TPCCProcedure {
             itemIDs[numItems - 1] = TPCCConfig.INVALID_ITEM_ID;
         }
 
-        newOrderTransaction(terminalWarehouseID, districtID, customerID, terminalDistrictLowerID, terminalDistrictUpperID,
+        newOrderTransaction(schedule, terminalWarehouseID, districtID, customerID, terminalDistrictLowerID, terminalDistrictUpperID,
             numItems, allLocal, itemIDs, supplierWarehouseIDs, orderQuantities, conn);
 
     }
 
-    private void newOrderTransaction(int w_id, int d_id, int c_id, int terminalDistrictLowerID, int terminalDistrictUpperID,
+    private void newOrderTransaction(int schedule, int w_id, int d_id, int c_id, int terminalDistrictLowerID, int terminalDistrictUpperID,
                                      int o_ol_cnt, int o_all_local, int[] itemIDs,
                                      int[] supplierWarehouseIDs, int[] orderQuantities, Connection conn) throws SQLException {
 
         /* START CUSTOM SQL */
-        startFor(conn, w_id, d_id);
+        if (schedule != 0) {
+            startFor(conn, w_id, d_id);
+        }
         /* END CUSTOM SQL */
 
         getWarehouse(conn, w_id);

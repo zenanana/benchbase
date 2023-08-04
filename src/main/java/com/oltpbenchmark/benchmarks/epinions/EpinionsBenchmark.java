@@ -95,7 +95,7 @@ public class EpinionsBenchmark extends BenchmarkModule {
 
             // Now create the workers.
             for (int i = 0; i < workConf.getTerminals(); ++i) {
-                workers.add(new EpinionsWorker(this, i, user_ids, item_ids));
+                workers.add(new EpinionsWorker(this, i, user_ids, item_ids, workConf.getSchedule()));
             }
 
         } catch (SQLException e) {

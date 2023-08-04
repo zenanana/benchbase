@@ -76,17 +76,25 @@ public class ReadXWriteZRecord extends Procedure {
      * Z: single hotkey from group 2
      * Y_start, Y_end: range of filler keys to use for filler stmts
      */
-    public void run(Connection conn, int trx_typ, Integer[] trx_args, int X, int Z, int Z_start, int Z_end, String[] fields, String[] results) throws SQLException {
+    public void run(Connection conn, int trx_typ, int schedule, Integer[] trx_args, int X, int Z, int Z_start, int Z_end, String[] fields, String[] results) throws SQLException {
         // TODO: get Z_start and Z_end within function rather than passing as arguments
         // System.out.printf("Trying to start cluster 1 with %d and %d%n", X, Z);
 
+        // System.out.println("ReadX cluster: " + (trx_typ+101));
         // Start trx for stmt
+
         try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
-            stmt.setInt(1, trx_typ);
+            if (schedule != 0) {
+                stmt.setInt(1, trx_typ+1);
+            } else {
+                stmt.setInt(1, 0);
+            }
             stmt.setInt(2, trx_args[0]);
             stmt.setInt(3, trx_args[1]);
             stmt.execute();
         }
+
+
         // System.out.println("Start cluster 1 done");
 
         // Fetch it!
@@ -111,7 +119,7 @@ public class ReadXWriteZRecord extends Procedure {
             }
             set.add(randInt);
 
-            if (false) { //randInt % 2 == 0) { //true) {//
+            if (randInt % 2 == 0) { //false) { //true) {//
                 try (PreparedStatement stmt = this.getPreparedStatement(conn, fillerYStmt)) {
                     stmt.setInt(1, randInt);
                     try (ResultSet r = stmt.executeQuery()) {

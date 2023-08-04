@@ -123,14 +123,16 @@ public class Payment extends TPCCProcedure {
     /* END CUSTOM SQL */
 
     public void run(Connection conn, Random gen, int w_id, int numWarehouses, int next_id,
-    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker worker) throws SQLException {
+    int terminalDistrictLowerID, int terminalDistrictUpperID, int schedule, TPCCWorker worker) throws SQLException {
 
         int districtID = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
 
         float paymentAmount = (float) (TPCCUtil.randomNumber(100, 500000, gen) / 100.0);
 
         /* START CUSTOM SQL */
-        startFor(conn, w_id, districtID);
+
+        startFor(conn, w_id, districtID, schedule);
+
         /* END CUSTOM SQL */
 
         updateWarehouse(conn, w_id, paymentAmount);
@@ -511,11 +513,20 @@ public class Payment extends TPCCProcedure {
     }
 
     /* START CUSTOM SQL */
-    private void startFor(Connection conn, int w_id, int districtID) throws SQLException {
-        int type = w_id + 20; //  (w_id - 1) * 10 + randInt(1, 10); w_id; //
+    private void startFor(Connection conn, int w_id, int districtID, int schedule) throws SQLException {
+        int type = w_id + 101; // w_id + 20; //  (w_id - 1) * 10 + randInt(1, 10); w_id; //
+        // if (w_id % 2 == 0) {
+        //     type = 2;
+        // } else {
+        //     type = 1;
+        // }
         // System.out.printf("P w_id: %d type%d%n", w_id, type);
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, type); // Payment trx type = 1
+            if (schedule != 0) {
+                stmt.setInt(1, type); // Payment trx type = 1
+            } else {
+                stmt.setInt(1, 0);
+            }
             stmt.setInt(2, 1);
             stmt.setInt(3, 6);
             stmt.execute();

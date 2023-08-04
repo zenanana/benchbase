@@ -139,6 +139,7 @@ public class DBWorkload {
             String isolationMode = xmlConfig.getString("isolation[not(@bench)]", "TRANSACTION_SERIALIZABLE");
             wrkld.setIsolationMode(xmlConfig.getString("isolation" + pluginTest, isolationMode));
             wrkld.setScaleFactor(xmlConfig.getDouble("scalefactor", 1.0));
+            wrkld.setSchedule(xmlConfig.getInt("schedule", 0));
             wrkld.setDataDir(xmlConfig.getString("datadir", "."));
             wrkld.setDDLPath(xmlConfig.getString("ddlpath", null));
 

@@ -47,13 +47,16 @@ public class EpinionsWorker extends Worker<EpinionsBenchmark> {
     private final ArrayList<String> item_ids;
     private final Random rand = new Random(System.currentTimeMillis());
 
-    public EpinionsWorker(EpinionsBenchmark benchmarkModule, int id, ArrayList<String> user_ids, ArrayList<String> item_ids) {
+    private int schedule;
+
+    public EpinionsWorker(EpinionsBenchmark benchmarkModule, int id, ArrayList<String> user_ids, ArrayList<String> item_ids, int schedule) {
         super(benchmarkModule, id);
         this.user_ids = user_ids;
         this.item_ids = item_ids;
         this.readRecord = new ZipfianGenerator(rng(), item_ids.size(), 0.99);
         this.userRecord = new ZipfianGenerator(rng(), user_ids.size(), 1.95);
         this.itemRecord = new ZipfianGenerator(rng(), item_ids.size(), 1.95);
+        this.schedule = schedule;
     }
 
     @Override
@@ -132,7 +135,7 @@ public class EpinionsWorker extends Worker<EpinionsBenchmark> {
 
         long iid = Long.valueOf(item_ids.get(itemRecord.nextInt())); //rng().nextInt(item_ids.size()))); //
         String title = TextGenerator.randomStr(rng(), EpinionsConstants.TITLE_LENGTH); // FIXME
-        proc.run(conn, iid, title);
+        proc.run(conn, iid, title, this.schedule);
     }
 
     public void updateReviewRating(Connection conn) throws SQLException {
@@ -141,7 +144,7 @@ public class EpinionsWorker extends Worker<EpinionsBenchmark> {
         long iid = Long.valueOf(item_ids.get(itemRecord.nextInt())); //rng().nextInt(item_ids.size()))); //
         long uid = Long.valueOf(user_ids.get(rng().nextInt(user_ids.size()))); //userRecord.nextInt())); //
         int rating = rng().nextInt(1000); // ???
-        proc.run(conn, iid, uid, rating);
+        proc.run(conn, iid, uid, rating, this.schedule);
     }
 
     public void updateTrustRating(Connection conn) throws SQLException {
@@ -167,7 +170,7 @@ public class EpinionsWorker extends Worker<EpinionsBenchmark> {
         }
         String title = TextGenerator.randomStr(rng(), EpinionsConstants.TITLE_LENGTH); // FIXME
 
-        proc.run(conn, keys, title);
+        proc.run(conn, keys, title, this.schedule);
 
     }
 }

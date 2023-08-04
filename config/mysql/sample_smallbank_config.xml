@@ -11,6 +11,7 @@
     <batchsize>128</batchsize>
 
     <scalefactor>1</scalefactor>
+    <schedule>0<schedule>
 
     <!-- The workload -->
     <terminals>1</terminals>

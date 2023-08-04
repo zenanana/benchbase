@@ -50,6 +50,7 @@ public class WorkloadConfiguration {
     private String dataDir = null;
     private String ddlPath = null;
     private int schedBatchTime = 100;
+    private int schedule = 0;
 
     /**
      * If true, establish a new connection for each transaction, otherwise use one persistent connection per client
@@ -208,6 +209,14 @@ public class WorkloadConfiguration {
      */
     public void setScaleFactor(double scaleFactor) {
         this.scaleFactor = scaleFactor;
+    }
+
+    public int getSchedule() {
+        return this.schedule;
+    }
+
+    public void setSchedule(int schedule) {
+        this.schedule = schedule;
     }
 
     /**

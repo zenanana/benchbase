@@ -59,7 +59,7 @@ public class GetLongTransaction extends Procedure {
             "UPDATE item SET title = ? WHERE i_id = ? "
     );
 
-    public void run(Connection conn, ArrayList<Integer> keys, String title) throws SQLException {
+    public void run(Connection conn, ArrayList<Integer> keys, String title, int schedule) throws SQLException {
 
         ArrayList<Integer> hot_keys = new ArrayList<>();
         hot_keys.add(0);
@@ -122,7 +122,11 @@ public class GetLongTransaction extends Procedure {
         //     Arrays.toString(read_keys), Arrays.toString(write_keys));
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, type);
+            if (schedule != 0) {
+                stmt.setInt(1, type);
+            } else {
+                stmt.setInt(1, 0);
+            }
             stmt.setInt(2, 0);
             stmt.setInt(3, 7);
             stmt.execute();

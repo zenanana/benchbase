@@ -114,7 +114,7 @@ public class NewOrder extends TPCCProcedure {
     int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 
     public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int next_id,
-    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+    int terminalDistrictLowerID, int terminalDistrictUpperID, int schedule, TPCCWorker w) throws SQLException {
 
         int districtID = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
         int customerID = TPCCUtil.getCustomerID(gen);
@@ -144,17 +144,19 @@ public class NewOrder extends TPCCProcedure {
             itemIDs[numItems - 1] = TPCCConfig.INVALID_ITEM_ID;
         }
 
-        newOrderTransaction(terminalWarehouseID, districtID, customerID, next_id, numItems, allLocal, itemIDs, supplierWarehouseIDs, orderQuantities, conn);
+        newOrderTransaction(schedule, terminalWarehouseID, districtID, customerID, next_id, numItems, allLocal, itemIDs, supplierWarehouseIDs, orderQuantities, conn);
 
     }
 
 
-    private void newOrderTransaction(int w_id, int d_id, int c_id, int next_id,
+    private void newOrderTransaction(int schedule, int w_id, int d_id, int c_id, int next_id,
                                      int o_ol_cnt, int o_all_local, int[] itemIDs,
                                      int[] supplierWarehouseIDs, int[] orderQuantities, Connection conn) throws SQLException {
 
         /* START CUSTOM SQL */
-        startFor(conn, w_id, d_id);
+
+        startFor(conn, w_id, d_id, schedule);
+
         /* END CUSTOM SQL */
 
         getCustomer(conn, w_id, d_id, c_id);
@@ -424,11 +426,15 @@ public class NewOrder extends TPCCProcedure {
     }
 
     /* START CUSTOM SQL */
-    private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
-        int type = d_id; //w_id; //(w_id - 1) * 10 + d_id; //
+    private void startFor(Connection conn, int w_id, int d_id, int schedule) throws SQLException {
+        int type = w_id + 1;//(w_id % 2) + 1; //(w_id - 1) * 10 + d_id; // d_id; //
         // System.out.printf("NO w_id: %d d_id: %d type%d%n", w_id, d_id, type);
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, type); // NewOrder trx type = 0
+            if (schedule != 0) {
+                stmt.setInt(1, type); // NewOrder trx type = 0
+            } else {
+                stmt.setInt(1, 0);
+            }
             stmt.setInt(2, 0);
             stmt.setInt(3, 0);
             stmt.execute();

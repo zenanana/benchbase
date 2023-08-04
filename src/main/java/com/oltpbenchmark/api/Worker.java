@@ -51,7 +51,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     private final AtomicInteger intervalRequests = new AtomicInteger(0);
 
     // Max time to wait before retry
-    private final int MAX_DELAY_MS = 5000;
+    private final int MAX_DELAY_MS = 10000;
     private final double BACKOFF_FACTOR = 2.0; // Backoff factor
 
     private final int id;
@@ -401,7 +401,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         try {
             int retryCount = 0;
             int maxRetryCount = configuration.getMaxRetries();
-            int delayInMillis = 1;
+            int delayInMillis = randInt(1,10);
 
             while ( this.workloadState.getGlobalState() != State.DONE) { //retryCount < maxRetryCount &&
 
@@ -462,6 +462,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
                         retryCount++;
 
+                        delayInMillis = (int) Math.min(MAX_DELAY_MS, delayInMillis * BACKOFF_FACTOR * (1.0 + rng().nextDouble()));
                         try {
                             LOG.debug("{} will sleep for {} ms before retrying", transactionType, delayInMillis);
 
@@ -469,7 +470,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                         } catch (InterruptedException e) {
                             LOG.error("Backoff interrupted", e);
                         }
-                        delayInMillis = (int) Math.min(MAX_DELAY_MS, delayInMillis * BACKOFF_FACTOR * (1.0 + rng().nextDouble()));
+
                         // delayInMillis = Math.min(MAX_DELAY_MS, randInt(0, (int) (delayInMillis * BACKOFF_FACTOR * (1.0 + rng().nextDouble()))));
                     } else {
                         LOG.warn(String.format("SQLException occurred during [%s] and will not be retried... sql state [%s], error code [%d].", transactionType, ex.getSQLState(), ex.getErrorCode()), ex);
@@ -480,6 +481,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                     }
 
                 } finally {
+                    // if (retryCount > 0) {
+                    //     System.out.println("retryCount: " + retryCount + " delay: " + delayInMillis);
+                    // }
+
                     if (this.configuration.getNewConnectionPerTxn() && this.conn != null) {
                         try {
                             this.conn.close();

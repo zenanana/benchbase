@@ -47,17 +47,21 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
 
     private final int numWarehouses;
 
+    private int schedule;
+
     public TPCCWorker(TPCCBenchmark benchmarkModule, int id,
                       int terminalWarehouseID, int terminalDistrictLowerID,
-                      int terminalDistrictUpperID, int numWarehouses) {
+                      int terminalDistrictUpperID, int numWarehouses,
+                      int schedule) {
         super(benchmarkModule, id);
 
         this.terminalWarehouseID = terminalWarehouseID;
         this.terminalDistrictLowerID = terminalDistrictLowerID;
         this.terminalDistrictUpperID = terminalDistrictUpperID;
 
-
         this.numWarehouses = numWarehouses;
+
+        this.schedule = schedule;
     }
 
     public void set_scheduler(TPCCScheduler scheduler) {
@@ -75,7 +79,7 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
                 // int next_id = scheduler.next_id.getAndIncrement();
                 // System.out.printf("next_id: %d%n",next_id);
                 proc.run(conn, gen, terminalWarehouseID, numWarehouses, 0, //next_id,
-                    terminalDistrictLowerID, terminalDistrictUpperID, this);
+                    terminalDistrictLowerID, terminalDistrictUpperID, this.schedule, this);
             //     conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             // } else {
                 // conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);

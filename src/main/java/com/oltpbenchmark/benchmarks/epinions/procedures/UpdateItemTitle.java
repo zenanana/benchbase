@@ -39,18 +39,24 @@ public class UpdateItemTitle extends Procedure {
             "UPDATE item SET title = ? WHERE i_id=?"
     );
 
-    public void run(Connection conn, long iid, String title) throws SQLException {
+    public void run(Connection conn, long iid, String title, int schedule) throws SQLException {
         int type = (int) iid;
         if (type > 30) {
             type = 31;
         }
         // System.out.printf("UIT iid: %d type%d%n", iid, type);
+
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, type + 1); // NewOrder trx type = 0
+            if (schedule != 0) {
+                stmt.setInt(1, type + 1); // NewOrder trx type = 0
+            } else {
+                stmt.setInt(1, 0);
+            }
             stmt.setInt(2, 0);
             stmt.setInt(3, 7);
             stmt.execute();
         }
+
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, selectItem)) {
             stmt.setLong(1, iid);

@@ -72,11 +72,14 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
 
     private final YCSBTransactionRecord procYCSBTransactionRecord;
 
-    public YCSBWorker(YCSBBenchmark benchmarkModule, int id, int init_record_count) {
+    private int schedule;
+
+    public YCSBWorker(YCSBBenchmark benchmarkModule, int id, int init_record_count, int schedule) {
         super(benchmarkModule, id);
         this.data = new char[benchmarkModule.fieldSize];
         this.readRecord = new ZipfianGenerator(rng(), init_record_count);// pool for read keys
         this.randScan = new ZipfianGenerator(rng(), YCSBConstants.MAX_SCAN);
+        this.schedule = schedule;
 
         synchronized (YCSBWorker.class) {
             // We must know where to start inserting
@@ -238,7 +241,7 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
             placeholder[1] = 5;
         }
         this.buildParameters();
-        this.procReadXWriteZRecord.run(conn, 1 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+        this.procReadXWriteZRecord.run(conn, 0 /* type */, this.schedule, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
 
     private void readZWriteXRecord(Connection conn) throws SQLException {
@@ -261,7 +264,7 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
             placeholder[1] = 4;
         }
         this.buildParameters();
-        this.procReadZWriteXRecord.run(conn, 2 /* type */, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
+        this.procReadZWriteXRecord.run(conn, 1 /* type */, this.schedule, placeholder, key_X, key_Z, Y_start, Y_end, this.params, this.results); // TODO: replace start for trx argument placeholders
     }
 
     /* END CUSTOM PROCEDURES */

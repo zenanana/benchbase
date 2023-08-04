@@ -79,7 +79,7 @@ public class OrderStatus extends TPCCProcedure {
     /* END CUSTOM SQL */
 
     public void run(Connection conn, Random gen, int w_id, int numWarehouses, int next_id,
-    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+    int terminalDistrictLowerID, int terminalDistrictUpperID, int schedule, TPCCWorker w) throws SQLException {
 
         /* START CUSTOM SQL */
         // startFor(conn, w_id, 0); // Placeholders for args

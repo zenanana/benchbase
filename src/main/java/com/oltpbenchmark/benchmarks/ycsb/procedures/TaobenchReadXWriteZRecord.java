@@ -106,7 +106,7 @@ public class TaobenchReadXWriteZRecord extends Procedure {
         int type = randInt(0,7);
         boolean finalWrite = false;
         int percent = randInt(0,99);
-        if (percent < 27) { // 15 50 65 43 35
+        if (percent < 35) { // 15 50 65 43 35 27
             finalWrite = true;
             if (type == 1) {
                 write_keys[0] = 1;
