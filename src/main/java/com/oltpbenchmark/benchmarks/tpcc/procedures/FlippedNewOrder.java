@@ -164,9 +164,9 @@ public class FlippedNewOrder extends TPCCProcedure {
         }
 
 
-        // insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
+        insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
 
-        // insertNewOrder(conn, w_id, d_id, d_next_o_id);
+        insertNewOrder(conn, w_id, d_id, d_next_o_id);
 
         try (PreparedStatement stmtUpdateStock = this.getPreparedStatement(conn, stmtUpdateStockSQL);
              PreparedStatement stmtInsertOrderLine = this.getPreparedStatement(conn, stmtInsertOrderLineSQL)) {
@@ -213,8 +213,8 @@ public class FlippedNewOrder extends TPCCProcedure {
 
             }
 
-            // stmtInsertOrderLine.executeBatch();
-            // stmtInsertOrderLine.clearBatch();
+            stmtInsertOrderLine.executeBatch();
+            stmtInsertOrderLine.clearBatch();
 
             stmtUpdateStock.executeBatch();
             stmtUpdateStock.clearBatch();
@@ -357,21 +357,21 @@ public class FlippedNewOrder extends TPCCProcedure {
     }
 
     private void getWarehouse(Connection conn, int w_id) throws SQLException {
-        // try (PreparedStatement stmtGetWhse = this.getPreparedStatement(conn, stmtGetWhseSQL)) {
-        //     stmtGetWhse.setInt(1, w_id);
-        //     try (ResultSet rs = stmtGetWhse.executeQuery()) {
-        //         if (!rs.next()) {
-        //             throw new RuntimeException("W_ID=" + w_id + " not found!");
-        //         }
-        //     }
-        // }
-        try (PreparedStatement payUpdateWhse = this.getPreparedStatement(conn, stmtPayUpdateWhseSQL)) {
-            payUpdateWhse.setInt(1, w_id);
-            int result = payUpdateWhse.executeUpdate();
-            if (result == 0) {
-                throw new RuntimeException("Error!! Cannot update warehouse W_ID=" + w_id);
+        try (PreparedStatement stmtGetWhse = this.getPreparedStatement(conn, stmtGetWhseSQL)) {
+            stmtGetWhse.setInt(1, w_id);
+            try (ResultSet rs = stmtGetWhse.executeQuery()) {
+                if (!rs.next()) {
+                    throw new RuntimeException("W_ID=" + w_id + " not found!");
+                }
             }
         }
+        // try (PreparedStatement payUpdateWhse = this.getPreparedStatement(conn, stmtPayUpdateWhseSQL)) {
+        //     payUpdateWhse.setInt(1, w_id);
+        //     int result = payUpdateWhse.executeUpdate();
+        //     if (result == 0) {
+        //         throw new RuntimeException("Error!! Cannot update warehouse W_ID=" + w_id);
+        //     }
+        // }
     }
 
     private void getCustomer(Connection conn, int w_id, int d_id, int c_id) throws SQLException {
