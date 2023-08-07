@@ -150,9 +150,7 @@ public class FlippedNewOrder extends TPCCProcedure {
                                      int[] supplierWarehouseIDs, int[] orderQuantities, Connection conn) throws SQLException {
 
         /* START CUSTOM SQL */
-        if (schedule != 0) {
-            startFor(conn, w_id, d_id);
-        }
+        startFor(conn, w_id, d_id, schedule);
         /* END CUSTOM SQL */
 
         getWarehouse(conn, w_id);
@@ -390,9 +388,14 @@ public class FlippedNewOrder extends TPCCProcedure {
     }
 
     /* START CUSTOM SQL */
-    private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
+    private void startFor(Connection conn, int w_id, int d_id, int schedule) throws SQLException {
+        int type = w_id + 101;
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, 0); // NewOrder trx type = 0
+            if (schedule != 0) {
+                stmt.setInt(1, type); // NewOrder trx type = 0
+            } else {
+                stmt.setInt(1, 0);
+            }
             stmt.setInt(2, 0);
             stmt.setInt(3, 7);
             stmt.execute();
