@@ -40,10 +40,10 @@ public class FlippedNewOrder extends TPCCProcedure {
             "   AND C_D_ID = ? " +
             "   AND C_ID = ?");
 
-    // public final SQLStmt stmtGetWhseSQL = new SQLStmt(
-    //         "SELECT W_TAX " +
-    //         "  FROM " + TPCCConstants.TABLENAME_WAREHOUSE +
-    //         " WHERE W_ID = ? FOR UPDATE");
+    public final SQLStmt stmtGetWhseSQL = new SQLStmt(
+            "SELECT W_TAX " +
+            "  FROM " + TPCCConstants.TABLENAME_WAREHOUSE +
+            " WHERE W_ID = ? FOR UPDATE");
 
     public SQLStmt stmtPayUpdateWhseSQL = new SQLStmt(
             "UPDATE " + TPCCConstants.TABLENAME_WAREHOUSE +
@@ -157,16 +157,16 @@ public class FlippedNewOrder extends TPCCProcedure {
 
         getCustomer(conn, w_id, d_id, c_id);
 
-        for (int i = terminalDistrictLowerID; i <= terminalDistrictLowerID; i++) {
+        for (int i = 1; i <= 10; i++) {
             if (i != d_id) {
                 getDistrictNoUpdate(conn, w_id, d_id);
             }
         }
 
 
-        insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
+        // insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
 
-        insertNewOrder(conn, w_id, d_id, d_next_o_id);
+        // insertNewOrder(conn, w_id, d_id, d_next_o_id);
 
         try (PreparedStatement stmtUpdateStock = this.getPreparedStatement(conn, stmtUpdateStockSQL);
              PreparedStatement stmtInsertOrderLine = this.getPreparedStatement(conn, stmtInsertOrderLineSQL)) {
@@ -213,8 +213,8 @@ public class FlippedNewOrder extends TPCCProcedure {
 
             }
 
-            stmtInsertOrderLine.executeBatch();
-            stmtInsertOrderLine.clearBatch();
+            // stmtInsertOrderLine.executeBatch();
+            // stmtInsertOrderLine.clearBatch();
 
             stmtUpdateStock.executeBatch();
             stmtUpdateStock.clearBatch();

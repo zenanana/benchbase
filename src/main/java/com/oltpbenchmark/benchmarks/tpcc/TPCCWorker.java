@@ -76,9 +76,9 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
         try {
             TPCCProcedure proc = (TPCCProcedure) this.getProcedure(nextTransaction.getProcedureClass());
             // if (proc.toString() == "NewOrder") {
-                // int next_id = scheduler.next_id.getAndIncrement();
+                int next_id = scheduler.next_id.getAndIncrement();
                 // System.out.printf("next_id: %d%n",next_id);
-                proc.run(conn, gen, terminalWarehouseID, numWarehouses, 0, //next_id,
+                proc.run(conn, gen, terminalWarehouseID, numWarehouses, next_id, //0, //
                     terminalDistrictLowerID, terminalDistrictUpperID, this.schedule, this);
             //     conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             // } else {

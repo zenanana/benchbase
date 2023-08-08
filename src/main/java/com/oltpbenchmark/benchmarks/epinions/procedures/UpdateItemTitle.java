@@ -48,7 +48,7 @@ public class UpdateItemTitle extends Procedure {
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
             if (schedule != 0) {
-                stmt.setInt(1, type + 1); // NewOrder trx type = 0
+                stmt.setInt(1, type + 1); // NewOrder trx type = 0 type+101);//
             } else {
                 stmt.setInt(1, 0);
             }

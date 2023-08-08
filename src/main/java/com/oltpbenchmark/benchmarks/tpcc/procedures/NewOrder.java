@@ -167,9 +167,9 @@ public class NewOrder extends TPCCProcedure {
 
         updateDistrict(conn, w_id, d_id);
 
-        // if (randInt(1, 100) <= 100) {
-        //     getAllDistricts(conn, w_id, d_id);
-        // }
+        if (randInt(1, 100) <= 100) {
+            getAllDistricts(conn, w_id, d_id);
+        }
 
         // int d_next_o_id = next_id;
 
@@ -389,7 +389,7 @@ public class NewOrder extends TPCCProcedure {
     }
 
     private int getDistrict(Connection conn, int w_id, int d_id) throws SQLException { // should be stmtGetDistSQL for TPCC Skew
-        try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistSQL)) { //stmtGetDistNoUpdateSQL
+        try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistNoUpdateSQL)) { //stmtGetDistSQL
             stmtGetDist.setInt(1, w_id);
             stmtGetDist.setInt(2, d_id);
             try (ResultSet rs = stmtGetDist.executeQuery()) {

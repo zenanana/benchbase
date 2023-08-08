@@ -123,7 +123,7 @@ public class GetLongTransaction extends Procedure {
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
             if (schedule != 0) {
-                stmt.setInt(1, type);
+                stmt.setInt(1,  101); //type+1); //type+101);//
             } else {
                 stmt.setInt(1, 0);
             }
