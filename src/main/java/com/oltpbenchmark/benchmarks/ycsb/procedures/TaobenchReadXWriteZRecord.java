@@ -79,7 +79,7 @@ public class TaobenchReadXWriteZRecord extends Procedure {
      * write_keys: keys to write to
      */
     public void run(Connection conn, Integer[] trx_args, //int[] read_keys, int[] write_keys,
-        int Z_start, int Z_end, String[] fields, String[] results) throws SQLException {
+        int Z_start, int Z_end, int schedule, String[] fields, String[] results) throws SQLException {
         // Prepare sets of read and write keys
         // float read_ratio = 0.5f;
         // List<Integer> read_hotkeys = new ArrayList<Integer>((int) Math.round(read_keys.length * read_ratio));
@@ -206,7 +206,11 @@ public class TaobenchReadXWriteZRecord extends Procedure {
         // Start trx for stmt
         if (type < 10) { //  || type == 12
             try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
-                stmt.setInt(1, write_keys[0]+1); //type+1); //
+                if (schedule != 0) {
+                    stmt.setInt(1, 101);//write_keys[0]+1); //type+1); //
+                } else {
+                    stmt.setInt(1, 0);
+                }
                 stmt.setInt(2, trx_args[0]);
                 stmt.setInt(3, trx_args[1]);
                 stmt.execute();
