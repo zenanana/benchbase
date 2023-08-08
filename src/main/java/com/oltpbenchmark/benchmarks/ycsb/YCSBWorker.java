@@ -367,7 +367,7 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
 
         this.buildParameters();
         this.procTaobenchReadXWriteZRecord.run(conn, placeholder, //read_keys_placeholder, write_keys_placeholder,
-            Y_start, Y_end, this.schedule this.params, this.results);
+            Y_start, Y_end, this.schedule, this.params, this.results);
     }
 
     private void taobenchReadZWriteXRecord(Connection conn) throws SQLException {
