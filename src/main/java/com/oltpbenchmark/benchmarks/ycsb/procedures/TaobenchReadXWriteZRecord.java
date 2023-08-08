@@ -207,7 +207,7 @@ public class TaobenchReadXWriteZRecord extends Procedure {
         if (type < 10) { //  || type == 12
             try (PreparedStatement stmt = this.getPreparedStatement(conn, startTrxForStmt)) {
                 if (schedule != 0) {
-                    stmt.setInt(1, 101);//write_keys[0]+1); //type+1); //
+                    stmt.setInt(1,write_keys[0]+1); //type+1); // 101);//
                 } else {
                     stmt.setInt(1, 0);
                 }
