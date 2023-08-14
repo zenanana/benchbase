@@ -86,7 +86,7 @@ public class GetLongTransaction extends Procedure {
         int[] read_keys = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         int[] write_keys = {0};
 
-        int type = randInt(0,7);
+        int type = randInt(0,6);//7);
         // boolean finalWrite = false;
         // if (randInt(0,99) < 35) {
         //     finalWrite = true;
@@ -123,7 +123,7 @@ public class GetLongTransaction extends Procedure {
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
             if (schedule != 0) {
-                stmt.setInt(1,  101); //type+1); //type+101);//
+                stmt.setInt(1,  type+1); //type+101);//101); //
             } else {
                 stmt.setInt(1, 0);
             }

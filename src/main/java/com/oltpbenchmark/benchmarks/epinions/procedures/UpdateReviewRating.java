@@ -32,7 +32,7 @@ public class UpdateReviewRating extends Procedure {
     );
 
     public final SQLStmt selectReview = new SQLStmt(
-            "SELECT * FROM review WHERE i_id=? AND u_id=?"
+            "SELECT * FROM review WHERE i_id=? AND u_id=? FOR UPDATE"
     );
 
     public final SQLStmt updateReview = new SQLStmt(
@@ -40,22 +40,24 @@ public class UpdateReviewRating extends Procedure {
     );
 
     public void run(Connection conn, long iid, long uid, int rating, int schedule) throws SQLException {
-        int type = (int) iid; // Math.min(iid, uid);
-        if (type > 30) {
-            type = 31;
-        }
-        // System.out.printf("UIT iid: %d uid: %d type%d%n", iid, uid, type);
+        // int type = (int) iid; // Math.min(iid, uid);
+        // if (type > 7) { //30) {
+        //     type = -1; //31;
+        // } else {
+        //     type = 7;
+        // }
+        // // System.out.printf("UIT iid: %d uid: %d type%d%n", iid, uid, type);
 
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            if (schedule != 0) {
-                stmt.setInt(1,  type + 1); // NewOrder trx type = 0 type+101);//
-            } else {
-                stmt.setInt(1, 0);
-            }
-            stmt.setInt(2, 0);
-            stmt.setInt(3, 7);
-            stmt.execute();
-        }
+        // try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+        //     if (schedule != 0 && type >= 0) {
+        //         stmt.setInt(1,  type + 1); // NewOrder trx type = 0 type+101);//
+        //     } else {
+        //         stmt.setInt(1, 0);
+        //     }
+        //     stmt.setInt(2, 0);
+        //     stmt.setInt(3, 7);
+        //     stmt.execute();
+        // }
 
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, selectReview)) {

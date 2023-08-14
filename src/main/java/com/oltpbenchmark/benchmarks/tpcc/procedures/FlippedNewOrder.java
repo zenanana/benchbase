@@ -43,7 +43,7 @@ public class FlippedNewOrder extends TPCCProcedure {
     public final SQLStmt stmtGetWhseSQL = new SQLStmt(
             "SELECT W_TAX " +
             "  FROM " + TPCCConstants.TABLENAME_WAREHOUSE +
-            " WHERE W_ID = ? FOR UPDATE");
+            " WHERE W_ID = ?"); // FOR UPDATE
 
     public SQLStmt stmtPayUpdateWhseSQL = new SQLStmt(
             "UPDATE " + TPCCConstants.TABLENAME_WAREHOUSE +
@@ -153,14 +153,17 @@ public class FlippedNewOrder extends TPCCProcedure {
         startFor(conn, w_id, d_id, schedule);
         /* END CUSTOM SQL */
 
-        getWarehouse(conn, w_id);
+        // getWarehouse(conn, w_id);
+        for (int i = 1; i <= 2; i++) {
+            getWarehouse(conn, i);
+        }
 
         getCustomer(conn, w_id, d_id, c_id);
 
         for (int i = 1; i <= 10; i++) {
-            if (i != d_id) {
-                getDistrictNoUpdate(conn, w_id, d_id);
-            }
+            // if (i != d_id) {
+                getDistrictNoUpdate(conn, w_id, i);
+            // }
         }
 
 
@@ -224,6 +227,7 @@ public class FlippedNewOrder extends TPCCProcedure {
         int d_next_o_id = getDistrict(conn, w_id, d_id);
 
         updateDistrict(conn, w_id, d_id);
+        updateWarehouse(conn, w_id);
     }
 
     private String getDistInfo(int d_id, Stock s) {
@@ -331,6 +335,7 @@ public class FlippedNewOrder extends TPCCProcedure {
     }
 
     private int getDistrict(Connection conn, int w_id, int d_id) throws SQLException {
+        // System.out.println("getDistrict: "+ w_id + " " + d_id);
         try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistSQL)) {
             stmtGetDist.setInt(1, w_id);
             stmtGetDist.setInt(2, d_id);
@@ -344,6 +349,7 @@ public class FlippedNewOrder extends TPCCProcedure {
     }
 
     private int getDistrictNoUpdate(Connection conn, int w_id, int d_id) throws SQLException {
+        // System.out.println("getDistrictNoUpdate: "+ w_id + " " + d_id);
         try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistNoUpdateSQL)) {
             stmtGetDist.setInt(1, w_id);
             stmtGetDist.setInt(2, d_id);
@@ -365,13 +371,16 @@ public class FlippedNewOrder extends TPCCProcedure {
                 }
             }
         }
-        // try (PreparedStatement payUpdateWhse = this.getPreparedStatement(conn, stmtPayUpdateWhseSQL)) {
-        //     payUpdateWhse.setInt(1, w_id);
-        //     int result = payUpdateWhse.executeUpdate();
-        //     if (result == 0) {
-        //         throw new RuntimeException("Error!! Cannot update warehouse W_ID=" + w_id);
-        //     }
-        // }
+    }
+
+    private void updateWarehouse(Connection conn, int w_id) throws SQLException {
+        try (PreparedStatement payUpdateWhse = this.getPreparedStatement(conn, stmtPayUpdateWhseSQL)) {
+            payUpdateWhse.setInt(1, w_id);
+            int result = payUpdateWhse.executeUpdate();
+            if (result == 0) {
+                throw new RuntimeException("Error!! Cannot update warehouse W_ID=" + w_id);
+            }
+        }
     }
 
     private void getCustomer(Connection conn, int w_id, int d_id, int c_id) throws SQLException {

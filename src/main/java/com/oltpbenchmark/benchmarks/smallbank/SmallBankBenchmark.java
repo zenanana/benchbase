@@ -42,7 +42,7 @@ public class SmallBankBenchmark extends BenchmarkModule {
     protected List<Worker<? extends BenchmarkModule>> makeWorkersImpl() {
         List<Worker<? extends BenchmarkModule>> workers = new ArrayList<>();
         for (int i = 0; i < workConf.getTerminals(); ++i) {
-            workers.add(new SmallBankWorker(this, i));
+            workers.add(new SmallBankWorker(this, i, workConf.getSchedule()));
         }
         return workers;
     }

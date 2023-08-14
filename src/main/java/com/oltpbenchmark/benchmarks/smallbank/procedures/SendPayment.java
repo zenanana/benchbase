@@ -41,6 +41,10 @@ import java.sql.SQLException;
  */
 public class SendPayment extends Procedure {
 
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        "START TRANSACTION ? FOR (?, ?)"
+    );
+
     public final SQLStmt GetAccount = new SQLStmt(
             "SELECT * FROM " + SmallBankConstants.TABLENAME_ACCOUNTS +
                     " WHERE custid = ?"
@@ -57,7 +61,24 @@ public class SendPayment extends Procedure {
                     " WHERE custid = ?"
     );
 
-    public void run(Connection conn, long sendAcct, long destAcct, double amount) throws SQLException {
+    public void run(Connection conn, long sendAcct, long destAcct, double amount, int schedule) throws SQLException {
+        // int type = (int) sendAcct;
+        // if (type > 7) { //30) {
+        //     type = -1; //31;
+        // }
+        // // System.out.printf("UIT iid: %d type%d%n", iid, type);
+
+        // try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+        //     if (schedule != 0 && type >= 0) {
+        //         stmt.setInt(1, type + 101); // NewOrder trx type = 0 type+101);//
+        //     } else {
+        //         stmt.setInt(1, 0);
+        //     }
+        //     stmt.setInt(2, 0);
+        //     stmt.setInt(3, 7);
+        //     stmt.execute();
+        // }
+
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, sendAcct)) {
             try (ResultSet r0 = stmt0.executeQuery()) {

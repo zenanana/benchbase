@@ -167,9 +167,9 @@ public class NewOrder extends TPCCProcedure {
 
         updateDistrict(conn, w_id, d_id);
 
-        if (randInt(1, 100) <= 100) {
-            getAllDistricts(conn, w_id, d_id);
-        }
+        // if (randInt(1, 100) <= 100) {
+        //     getAllDistricts(conn, w_id, d_id);
+        // }
 
         // int d_next_o_id = next_id;
 
