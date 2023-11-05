@@ -31,8 +31,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TPCCWorker extends Worker<TPCCBenchmark> {
+    /**
+     * get random integer in range [min, max]
+     */
+    public int randInt(int min, int max) {
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+
     private TPCCScheduler scheduler;
 
     private static final Logger LOG = LoggerFactory.getLogger(TPCCWorker.class);
@@ -75,6 +83,11 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
     protected TransactionStatus executeWork(Connection conn, TransactionType nextTransaction) throws UserAbortException, SQLException {
         try {
             TPCCProcedure proc = (TPCCProcedure) this.getProcedure(nextTransaction.getProcedureClass());
+            // if (randInt(0,100) < 80 && this.id == 0) {
+            //     while (proc.toString() != "Delivery") {
+            //         proc = (TPCCProcedure) this.getProcedure(nextTransaction.getProcedureClass());
+            //     }
+            // }
             // if (proc.toString() == "NewOrder") {
                 // int next_id = scheduler.next_id.getAndIncrement();
                 // System.out.printf("next_id: %d%n",next_id);

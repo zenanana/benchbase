@@ -407,13 +407,20 @@ public class YCSBWorker extends Worker<YCSBBenchmark> {
 
     private void ycsbTransactionRecord(Connection conn) throws SQLException {
         ArrayList<Integer> keys = new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
+        // if (this.id == 0) {
+            // for (int i = 0; i < 100; i++) {
+            //     keys.add(i);
+            // }
+        // } else {
+        int max_len = 5;
+        for (int i = 0; i < max_len; i++) {
             int new_key = readRecord.nextInt();
             while (keys.contains(new_key)) {
                 new_key = readRecord.nextInt();
             }
             keys.add(new_key);
         }
+        // }
 
         // System.out.println("keys: " + keys.toString());
 
