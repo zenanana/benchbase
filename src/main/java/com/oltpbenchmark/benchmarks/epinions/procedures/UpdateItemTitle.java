@@ -22,15 +22,45 @@ import com.oltpbenchmark.api.SQLStmt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UpdateItemTitle extends Procedure {
+
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        "START TRANSACTION ? FOR (?, ?)"
+    );
+
+    public final SQLStmt selectItem = new SQLStmt(
+            "SELECT * FROM item WHERE i_id=?"
+    );
 
     public final SQLStmt updateItem = new SQLStmt(
             "UPDATE item SET title = ? WHERE i_id=?"
     );
 
     public void run(Connection conn, long iid, String title) throws SQLException {
+        int type = (int) iid;
+        if (type > 30) {
+            type = 31;
+        }
+        // System.out.printf("UIT iid: %d type%d%n", iid, type);
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+            stmt.setInt(1, type + 1); // NewOrder trx type = 0
+            stmt.setInt(2, 0);
+            stmt.setInt(3, 7);
+            stmt.execute();
+        }
+
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, selectItem)) {
+            stmt.setLong(1, iid);
+            try (ResultSet r = stmt.executeQuery()) {
+                while (r.next()) {
+                    continue;
+                }
+            }
+        }
+
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateItem)) {
             stmt.setString(1, title);
             stmt.setLong(2, iid);

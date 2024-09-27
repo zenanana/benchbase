@@ -28,17 +28,10 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
-public class NewOrder extends TPCCProcedure {
-    /**
-     * get random integer in range [min, max]
-     */
-    public int randInt(int min, int max) {
-        return ThreadLocalRandom.current().nextInt(min, max + 1);
-    }
+public class FlippedNewOrder extends TPCCProcedure {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NewOrder.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FlippedNewOrder.class);
 
     public final SQLStmt stmtGetCustSQL = new SQLStmt(
             "SELECT C_DISCOUNT, C_LAST, C_CREDIT" +
@@ -47,10 +40,15 @@ public class NewOrder extends TPCCProcedure {
             "   AND C_D_ID = ? " +
             "   AND C_ID = ?");
 
-    public final SQLStmt stmtGetWhseSQL = new SQLStmt(
-            "SELECT W_TAX " +
-            "  FROM " + TPCCConstants.TABLENAME_WAREHOUSE +
-            " WHERE W_ID = ?");
+    // public final SQLStmt stmtGetWhseSQL = new SQLStmt(
+    //         "SELECT W_TAX " +
+    //         "  FROM " + TPCCConstants.TABLENAME_WAREHOUSE +
+    //         " WHERE W_ID = ? FOR UPDATE");
+
+    public SQLStmt stmtPayUpdateWhseSQL = new SQLStmt(
+            "UPDATE " + TPCCConstants.TABLENAME_WAREHOUSE +
+            "   SET W_YTD = W_YTD + 0.000001 " +
+            " WHERE W_ID = ? ");
 
     public final SQLStmt stmtGetDistNoUpdateSQL = new SQLStmt(
             "SELECT D_NEXT_O_ID, D_TAX " +
@@ -110,8 +108,6 @@ public class NewOrder extends TPCCProcedure {
     );
     /* END CUSTOM SQL */
 
-    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses,
-    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 
     public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses, int next_id,
     int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
@@ -144,12 +140,12 @@ public class NewOrder extends TPCCProcedure {
             itemIDs[numItems - 1] = TPCCConfig.INVALID_ITEM_ID;
         }
 
-        newOrderTransaction(terminalWarehouseID, districtID, customerID, next_id, numItems, allLocal, itemIDs, supplierWarehouseIDs, orderQuantities, conn);
+        newOrderTransaction(terminalWarehouseID, districtID, customerID, terminalDistrictLowerID, terminalDistrictUpperID,
+            numItems, allLocal, itemIDs, supplierWarehouseIDs, orderQuantities, conn);
 
     }
 
-
-    private void newOrderTransaction(int w_id, int d_id, int c_id, int next_id,
+    private void newOrderTransaction(int w_id, int d_id, int c_id, int terminalDistrictLowerID, int terminalDistrictUpperID,
                                      int o_ol_cnt, int o_all_local, int[] itemIDs,
                                      int[] supplierWarehouseIDs, int[] orderQuantities, Connection conn) throws SQLException {
 
@@ -157,23 +153,20 @@ public class NewOrder extends TPCCProcedure {
         startFor(conn, w_id, d_id);
         /* END CUSTOM SQL */
 
-        getCustomer(conn, w_id, d_id, c_id);
-
         getWarehouse(conn, w_id);
 
-        int d_next_o_id = getDistrict(conn, w_id, d_id);
+        getCustomer(conn, w_id, d_id, c_id);
 
-        updateDistrict(conn, w_id, d_id);
+        for (int i = terminalDistrictLowerID; i <= terminalDistrictLowerID; i++) {
+            if (i != d_id) {
+                getDistrictNoUpdate(conn, w_id, d_id);
+            }
+        }
 
-        // if (randInt(1, 100) <= 100) {
-        //     getAllDistricts(conn, w_id, d_id);
-        // }
 
-        // int d_next_o_id = next_id;
+        // insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
 
-        insertOpenOrder(conn, w_id, d_id, c_id, o_ol_cnt, o_all_local, d_next_o_id);
-
-        insertNewOrder(conn, w_id, d_id, d_next_o_id);
+        // insertNewOrder(conn, w_id, d_id, d_next_o_id);
 
         try (PreparedStatement stmtUpdateStock = this.getPreparedStatement(conn, stmtUpdateStockSQL);
              PreparedStatement stmtInsertOrderLine = this.getPreparedStatement(conn, stmtInsertOrderLineSQL)) {
@@ -192,7 +185,7 @@ public class NewOrder extends TPCCProcedure {
 
                 String ol_dist_info = getDistInfo(d_id, s);
 
-                stmtInsertOrderLine.setInt(1, d_next_o_id);
+                stmtInsertOrderLine.setInt(1, 0); // d_next_o_id
                 stmtInsertOrderLine.setInt(2, d_id);
                 stmtInsertOrderLine.setInt(3, w_id);
                 stmtInsertOrderLine.setInt(4, ol_number);
@@ -220,21 +213,17 @@ public class NewOrder extends TPCCProcedure {
 
             }
 
-            stmtInsertOrderLine.executeBatch();
-            stmtInsertOrderLine.clearBatch();
+            // stmtInsertOrderLine.executeBatch();
+            // stmtInsertOrderLine.clearBatch();
 
             stmtUpdateStock.executeBatch();
             stmtUpdateStock.clearBatch();
 
         }
 
-        // getDistrict(conn, w_id, d_id);
+        int d_next_o_id = getDistrict(conn, w_id, d_id);
 
-        // updateDistrict(conn, w_id, d_id);
-
-        // System.out.printf("DONE--NO w_id: %d%n", w_id);
-
-        // updateDistrictValidate(conn, w_id, d_id, d_next_o_id);
+        updateDistrict(conn, w_id, d_id);
     }
 
     private String getDistInfo(int d_id, Stock s) {
@@ -330,34 +319,6 @@ public class NewOrder extends TPCCProcedure {
         }
     }
 
-    private void updateDistrictValidate(Connection conn, int w_id, int d_id, int d_next_o_id) throws SQLException {
-        int curr_d_next_o_id = 0;
-        try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistNoUpdateSQL)) {
-            stmtGetDist.setInt(1, w_id);
-            stmtGetDist.setInt(2, d_id);
-            try (ResultSet rs = stmtGetDist.executeQuery()) {
-                if (!rs.next()) {
-                    throw new RuntimeException("D_ID=" + d_id + " D_W_ID=" + w_id + " not found!");
-                }
-                curr_d_next_o_id = rs.getInt("D_NEXT_O_ID");
-            }
-        }
-
-        if (curr_d_next_o_id != d_next_o_id) {
-            System.out.printf("curr_d_next_o_id %d d_next_o_id%d%n", curr_d_next_o_id, d_next_o_id);
-            throw new UserAbortException("Validation of d_next_o_id=" + d_next_o_id + " failed!");
-        }
-
-        try (PreparedStatement stmtUpdateDist = this.getPreparedStatement(conn, stmtUpdateDistSQL)) {
-            stmtUpdateDist.setInt(1, w_id);
-            stmtUpdateDist.setInt(2, d_id);
-            int result = stmtUpdateDist.executeUpdate();
-            if (result == 0) {
-                throw new RuntimeException("Error!! Cannot update next_order_id on district for D_ID=" + d_id + " D_W_ID=" + w_id);
-            }
-        }
-    }
-
     private void updateDistrict(Connection conn, int w_id, int d_id) throws SQLException {
         try (PreparedStatement stmtUpdateDist = this.getPreparedStatement(conn, stmtUpdateDistSQL)) {
             stmtUpdateDist.setInt(1, w_id);
@@ -369,25 +330,21 @@ public class NewOrder extends TPCCProcedure {
         }
     }
 
-    private void getAllDistricts(Connection conn, int w_id, int d_id) throws SQLException {
-        for (int i = 1; i <= 10; i++) {
-            if (i == d_id) {
-                continue;
-            }
-            try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistNoUpdateSQL)) { //stmtGetDistSQL
-                stmtGetDist.setInt(1, w_id);
-                stmtGetDist.setInt(2, i);
-                try (ResultSet rs = stmtGetDist.executeQuery()) {
-                    if (!rs.next()) {
-                        throw new RuntimeException("D_ID=" + d_id + " D_W_ID=" + w_id + " not found!");
-                    }
+    private int getDistrict(Connection conn, int w_id, int d_id) throws SQLException {
+        try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistSQL)) {
+            stmtGetDist.setInt(1, w_id);
+            stmtGetDist.setInt(2, d_id);
+            try (ResultSet rs = stmtGetDist.executeQuery()) {
+                if (!rs.next()) {
+                    throw new RuntimeException("D_ID=" + d_id + " D_W_ID=" + w_id + " not found!");
                 }
+                return rs.getInt("D_NEXT_O_ID");
             }
         }
     }
 
-    private int getDistrict(Connection conn, int w_id, int d_id) throws SQLException { // should be stmtGetDistSQL for TPCC Skew
-        try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistSQL)) { //stmtGetDistNoUpdateSQL
+    private int getDistrictNoUpdate(Connection conn, int w_id, int d_id) throws SQLException {
+        try (PreparedStatement stmtGetDist = this.getPreparedStatement(conn, stmtGetDistNoUpdateSQL)) {
             stmtGetDist.setInt(1, w_id);
             stmtGetDist.setInt(2, d_id);
             try (ResultSet rs = stmtGetDist.executeQuery()) {
@@ -400,12 +357,19 @@ public class NewOrder extends TPCCProcedure {
     }
 
     private void getWarehouse(Connection conn, int w_id) throws SQLException {
-        try (PreparedStatement stmtGetWhse = this.getPreparedStatement(conn, stmtGetWhseSQL)) {
-            stmtGetWhse.setInt(1, w_id);
-            try (ResultSet rs = stmtGetWhse.executeQuery()) {
-                if (!rs.next()) {
-                    throw new RuntimeException("W_ID=" + w_id + " not found!");
-                }
+        // try (PreparedStatement stmtGetWhse = this.getPreparedStatement(conn, stmtGetWhseSQL)) {
+        //     stmtGetWhse.setInt(1, w_id);
+        //     try (ResultSet rs = stmtGetWhse.executeQuery()) {
+        //         if (!rs.next()) {
+        //             throw new RuntimeException("W_ID=" + w_id + " not found!");
+        //         }
+        //     }
+        // }
+        try (PreparedStatement payUpdateWhse = this.getPreparedStatement(conn, stmtPayUpdateWhseSQL)) {
+            payUpdateWhse.setInt(1, w_id);
+            int result = payUpdateWhse.executeUpdate();
+            if (result == 0) {
+                throw new RuntimeException("Error!! Cannot update warehouse W_ID=" + w_id);
             }
         }
     }
@@ -425,14 +389,14 @@ public class NewOrder extends TPCCProcedure {
 
     /* START CUSTOM SQL */
     private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
-        int type = d_id; //w_id; //(w_id - 1) * 10 + d_id; //
-        // System.out.printf("NO w_id: %d d_id: %d type%d%n", w_id, d_id, type);
         try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
-            stmt.setInt(1, type); // NewOrder trx type = 0
+            stmt.setInt(1, 0); // NewOrder trx type = 0
             stmt.setInt(2, 0);
-            stmt.setInt(3, 0);
+            stmt.setInt(3, 7);
             stmt.execute();
         }
     }
     /* END CUSTOM SQL */
+    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 }

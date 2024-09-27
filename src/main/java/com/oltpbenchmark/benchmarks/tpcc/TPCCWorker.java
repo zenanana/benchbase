@@ -22,12 +22,14 @@ import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.tpcc.procedures.TPCCProcedure;
+import com.oltpbenchmark.benchmarks.tpcc.procedures.NewOrder;
 import com.oltpbenchmark.types.TransactionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Random;
 
 public class TPCCWorker extends Worker<TPCCBenchmark> {
@@ -69,25 +71,35 @@ public class TPCCWorker extends Worker<TPCCBenchmark> {
     protected TransactionStatus executeWork(Connection conn, TransactionType nextTransaction) throws UserAbortException, SQLException {
         try {
             TPCCProcedure proc = (TPCCProcedure) this.getProcedure(nextTransaction.getProcedureClass());
-            if (proc.toString() == "NewOrder") {
-                int count = scheduler.global_counter;
-                while(count != 0) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {}
-                    count = scheduler.global_counter;
-                }
-            } else if (proc.toString() == "Payment") {
-                int count = scheduler.global_counter;
-                while(count != 1) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {}
-                    count = scheduler.global_counter;
-                }
-            }
-            proc.run(conn, gen, terminalWarehouseID, numWarehouses,
+            // if (proc.toString() == "NewOrder") {
+                // int next_id = scheduler.next_id.getAndIncrement();
+                // System.out.printf("next_id: %d%n",next_id);
+                proc.run(conn, gen, terminalWarehouseID, numWarehouses, 0, //next_id,
                     terminalDistrictLowerID, terminalDistrictUpperID, this);
+            //     conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            // } else {
+                // conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            // }
+            //     int count = scheduler.global_counter;
+            //     while(count != 0) {
+            //         try {
+            //             Thread.sleep(10);
+            //         } catch (InterruptedException e) {}
+            //         count = scheduler.global_counter;
+            //     }
+            // } else if (proc.toString() == "Payment") {
+            //     int count = scheduler.global_counter;
+            //     while(count != 1) {
+            //         try {
+            //             Thread.sleep(10);
+            //         } catch (InterruptedException e) {}
+            //         count = scheduler.global_counter;
+            //     }
+            // }
+            // System.out.println("running " + proc.toString());
+            // proc.run(conn, gen, terminalWarehouseID, numWarehouses,
+            //         terminalDistrictLowerID, terminalDistrictUpperID, this);
+            // }
         } catch (ClassCastException ex) {
             //fail gracefully
             LOG.error("We have been invoked with an INVALID transactionType?!", ex);

@@ -34,8 +34,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.oltpbenchmark.types.State.MEASURE;
+
 
 public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
@@ -47,6 +49,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
     // Interval requests used by the monitor
     private final AtomicInteger intervalRequests = new AtomicInteger(0);
+
+    // Max time to wait before retry
+    private final int MAX_DELAY_MS = 5000;
+    private final double BACKOFF_FACTOR = 2.0; // Backoff factor
 
     private final int id;
     private final T benchmark;
@@ -91,6 +97,13 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             this.name_procedures.put(e.getKey().getName(), proc);
             this.class_procedures.put(proc.getClass(), proc);
         }
+    }
+
+     /**
+     * get random integer in range [min, max]
+     */
+    public int randInt(int min, int max) {
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
 
     /**
@@ -388,8 +401,9 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         try {
             int retryCount = 0;
             int maxRetryCount = configuration.getMaxRetries();
+            int delayInMillis = 1;
 
-            while (retryCount < maxRetryCount && this.workloadState.getGlobalState() != State.DONE) {
+            while ( this.workloadState.getGlobalState() != State.DONE) { //retryCount < maxRetryCount &&
 
                 TransactionStatus status = TransactionStatus.UNKNOWN;
 
@@ -423,7 +437,9 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                         LOG.debug(String.format("%s %s committing...", this, transactionType));
                     }
 
+                    // System.out.printf("committing %s%n",transactionType);
                     conn.commit();
+                    // System.out.printf("committed %s%n",transactionType);
 
                     break;
 
@@ -445,6 +461,16 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                         status = TransactionStatus.RETRY;
 
                         retryCount++;
+
+                        try {
+                            LOG.debug("{} will sleep for {} ms before retrying", transactionType, delayInMillis);
+
+                            Thread.sleep(delayInMillis);
+                        } catch (InterruptedException e) {
+                            LOG.error("Backoff interrupted", e);
+                        }
+                        delayInMillis = (int) Math.min(MAX_DELAY_MS, delayInMillis * BACKOFF_FACTOR * (1.0 + rng().nextDouble()));
+                        // delayInMillis = Math.min(MAX_DELAY_MS, randInt(0, (int) (delayInMillis * BACKOFF_FACTOR * (1.0 + rng().nextDouble()))));
                     } else {
                         LOG.warn(String.format("SQLException occurred during [%s] and will not be retried... sql state [%s], error code [%d].", transactionType, ex.getSQLState(), ex.getErrorCode()), ex);
 

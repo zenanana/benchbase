@@ -18,11 +18,15 @@
 
 package com.oltpbenchmark.benchmarks.tatp;
 
+import com.oltpbenchmark.distributions.ZipfianGenerator;
+
 import java.util.Random;
 
 public abstract class TATPUtil {
 
     public static final Random rand = new Random();
+
+    public static final ZipfianGenerator readRecord = new ZipfianGenerator(rand, Math.round(TATPConstants.DEFAULT_NUM_SUBSCRIBERS * 1), 1.95);
 
     public static byte isActive() {
         return (byte) (number(1, 100) < number(86, 100) ? 1 : 0);
@@ -30,6 +34,10 @@ public abstract class TATPUtil {
 
     public static Long getSubscriberId(long subscriberSize) {
         return (TATPUtil.number(1, subscriberSize));
+    }
+
+    public static Long getZipfSubscriberId() {
+        return readRecord.nextLong();
     }
 
     // modified from tpcc.RandomGenerator
@@ -50,7 +58,7 @@ public abstract class TATPUtil {
         return randomString(minimum_length, maximum_length, '0', 10);
     }
 
-    // taken from tpcc.RandomGenerator 
+    // taken from tpcc.RandomGenerator
     public static String randomString(int minimum_length, int maximum_length, char base, int numCharacters) {
         int length = number(minimum_length, maximum_length).intValue();
         byte baseByte = (byte) base;

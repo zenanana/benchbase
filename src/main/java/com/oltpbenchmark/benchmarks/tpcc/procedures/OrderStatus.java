@@ -72,7 +72,18 @@ public class OrderStatus extends TPCCProcedure {
             "   AND C_LAST = ? " +
             " ORDER BY C_FIRST");
 
-    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+    /* START CUSTOM SQL */
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        TPCCConstants.START_TRX_FOR_STMT
+    );
+    /* END CUSTOM SQL */
+
+    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int next_id,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {
+
+        /* START CUSTOM SQL */
+        // startFor(conn, w_id, 0); // Placeholders for args
+        /* END CUSTOM SQL */
 
         int d_id = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
         int y = TPCCUtil.randomNumber(1, 100, gen);
@@ -283,8 +294,16 @@ public class OrderStatus extends TPCCProcedure {
         return customers.get(index);
     }
 
-
+    /* START CUSTOM SQL */
+    private void startFor(Connection conn, int w_id, int d_id) throws SQLException {
+        // try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+        //     stmt.setInt(1, 0); // OrderStatus trx type = 3
+        //     stmt.setInt(2, 0);
+        //     stmt.setInt(3, 7);
+        //     stmt.execute();
+        // }
+    }
+    /* END CUSTOM SQL */
+    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 }
-
-
-

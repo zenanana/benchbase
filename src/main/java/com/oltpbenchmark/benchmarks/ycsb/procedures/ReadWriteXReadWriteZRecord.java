@@ -30,6 +30,8 @@ import java.sql.SQLException;
 import static com.oltpbenchmark.benchmarks.ycsb.YCSBConstants.TABLE_NAME;
 
 import java.util.Random;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -48,6 +50,10 @@ public class ReadWriteXReadWriteZRecord extends Procedure {
     }
 
     public final SQLStmt selectXStmt = new SQLStmt(
+        "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=?"
+    );
+
+    public final SQLStmt selectZStmt = new SQLStmt(
         "SELECT * FROM " + TABLE_NAME + " where YCSB_KEY=? FOR UPDATE"
     );
 
@@ -100,31 +106,63 @@ public class ReadWriteXReadWriteZRecord extends Procedure {
         }
         // System.out.printf("Read cluster 1 to %d done%n", X);
 
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
-            stmt.setInt(11, X);
+        // Bunch of filler stmts
+        // for (int i = 0; i < YCSBConstants.FILLER_STMT_SIZE; i++) {
+        //     try (PreparedStatement stmt = this.getPreparedStatement(conn, fillerYStmt)) {
+        //         stmt.setInt(1, randInt(Z_start, Z_end));
+        //         try (ResultSet r = stmt.executeQuery()) {
+        //             while (r.next()) {
+        //                 for (int j = 0; j < YCSBConstants.NUM_FIELDS; j++) {
+        //                     results[j] = r.getString(j + 1);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-            for (int i = 0; i < fields.length; i++) {
-                stmt.setString(i + 1, fields[i]);
-            }
-            stmt.executeUpdate();
-        }
+        // try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
+        //     stmt.setInt(11, X);
+
+        //     for (int i = 0; i < fields.length; i++) {
+        //         stmt.setString(i + 1, fields[i]);
+        //     }
+        //     stmt.executeUpdate();
+        // }
         // System.out.printf("Write cluster 1 to %d done%n", X);
 
+        Set<Integer> set = new HashSet<Integer>();
         // Bunch of filler stmts
         for (int i = 0; i < YCSBConstants.FILLER_STMT_SIZE; i++) {
-            try (PreparedStatement stmt = this.getPreparedStatement(conn, fillerYStmt)) {
-                stmt.setInt(1, randInt(Z_start, Z_end));
-                try (ResultSet r = stmt.executeQuery()) {
-                    while (r.next()) {
-                        for (int j = 0; j < YCSBConstants.NUM_FIELDS; j++) {
-                            results[j] = r.getString(j + 1);
+            int randInt = randInt(Z_start, Z_end);
+            while (set.contains(randInt)) {
+                randInt = randInt(Z_start, Z_end);
+            }
+            set.add(randInt);
+
+            if (randInt % 2 == 0) {
+                try (PreparedStatement stmt = this.getPreparedStatement(conn, fillerYStmt)) {
+                    stmt.setInt(1, randInt);
+                    try (ResultSet r = stmt.executeQuery()) {
+                        while (r.next()) {
+                            for (int j = 0; j < YCSBConstants.NUM_FIELDS; j++) {
+                                results[j] = r.getString(j + 1);
+                            }
                         }
                     }
+                }
+            } else {
+                try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {
+                    stmt.setInt(11, randInt);
+
+                    for (int j = 0; j < fields.length; j++) {
+                        stmt.setString(j + 1, fields[j]);
+                    }
+                    stmt.executeUpdate();
                 }
             }
         }
 
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, selectXStmt)) {
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, selectZStmt)) {
             stmt.setInt(1, Z);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
@@ -135,6 +173,20 @@ public class ReadWriteXReadWriteZRecord extends Procedure {
             }
         }
         // System.out.printf("Read2 cluster 1 to %d done%n", Z);
+
+        // Bunch of filler stmts
+        // for (int i = 0; i < YCSBConstants.FILLER_STMT_SIZE; i++) {
+        //     try (PreparedStatement stmt = this.getPreparedStatement(conn, fillerYStmt)) {
+        //         stmt.setInt(1, randInt(Z_start, Z_end));
+        //         try (ResultSet r = stmt.executeQuery()) {
+        //             while (r.next()) {
+        //                 for (int j = 0; j < YCSBConstants.NUM_FIELDS; j++) {
+        //                     results[j] = r.getString(j + 1);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         // Update that mofo
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateZStmt)) {

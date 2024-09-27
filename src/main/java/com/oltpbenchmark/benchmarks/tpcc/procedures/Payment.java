@@ -32,8 +32,15 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Payment extends TPCCProcedure {
+    /**
+     * get random integer in range [min, max]
+     */
+    public int randInt(int min, int max) {
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(Payment.class);
 
@@ -109,11 +116,22 @@ public class Payment extends TPCCProcedure {
             "   AND C_LAST = ? " +
             " ORDER BY C_FIRST");
 
-    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker worker) throws SQLException {
+    /* START CUSTOM SQL */
+    public final SQLStmt stmtStartTrxForSQL = new SQLStmt(
+        TPCCConstants.START_TRX_FOR_STMT
+    );
+    /* END CUSTOM SQL */
+
+    public void run(Connection conn, Random gen, int w_id, int numWarehouses, int next_id,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker worker) throws SQLException {
 
         int districtID = TPCCUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
 
         float paymentAmount = (float) (TPCCUtil.randomNumber(100, 500000, gen) / 100.0);
+
+        /* START CUSTOM SQL */
+        startFor(conn, w_id, districtID);
+        /* END CUSTOM SQL */
 
         updateWarehouse(conn, w_id, paymentAmount);
 
@@ -144,6 +162,12 @@ public class Payment extends TPCCProcedure {
         }
 
         insertHistory(conn, w_id, districtID, customerDistrictID, customerWarehouseID, paymentAmount, w.w_name, d.d_name, c);
+
+        // updateWarehouse(conn, w_id, paymentAmount);
+
+        // updateDistrict(conn, w_id, districtID, paymentAmount);
+
+        // System.out.printf("DONE--P w_id: %d%n", w_id);
 
         if (LOG.isTraceEnabled()) {
             StringBuilder terminalMessage = new StringBuilder();
@@ -486,5 +510,19 @@ public class Payment extends TPCCProcedure {
         return customers.get(index);
     }
 
+    /* START CUSTOM SQL */
+    private void startFor(Connection conn, int w_id, int districtID) throws SQLException {
+        int type = w_id + 20; //  (w_id - 1) * 10 + randInt(1, 10); w_id; //
+        // System.out.printf("P w_id: %d type%d%n", w_id, type);
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, stmtStartTrxForSQL)) {
+            stmt.setInt(1, type); // Payment trx type = 1
+            stmt.setInt(2, 1);
+            stmt.setInt(3, 6);
+            stmt.execute();
+        }
+    }
+    /* END CUSTOM SQL */
 
+    public void run(Connection conn, Random gen, int terminalWarehouseID, int numWarehouses,
+    int terminalDistrictLowerID, int terminalDistrictUpperID, TPCCWorker w) throws SQLException {}
 }
